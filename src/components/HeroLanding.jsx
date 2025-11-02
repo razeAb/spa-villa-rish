@@ -1,11 +1,10 @@
 import { motion } from "framer-motion";
-import { Whatsapp } from "lucide-react";
-
+import { SiWhatsapp } from "react-icons/si";
 export default function HeroLanding() {
   return (
     <section className="relative h-[100dvh] w-full overflow-hidden bg-black">
       {/* Background image */}
-      <img src="/hero.jpg" alt="Spa" className="absolute inset-0 h-full w-full object-cover opacity-90" />
+      <img src="../photos/spa-home.jpg" alt="Spa" className="absolute inset-0 h-full w-full object-cover opacity-90" />
 
       {/* Overlays */}
       <div className="absolute inset-0 bg-black/40" />
@@ -16,9 +15,7 @@ export default function HeroLanding() {
       <div className="relative z-10 mx-auto flex h-full max-w-7xl items-center justify-center px-4">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="text-center">
           <h1 className="text-4xl md:text-6xl font-light tracking-[0.4em] text-white">S H E V E T</h1>
-          <h2 className="mt-3 text-2xl md:text-4xl font-light tracking-[0.35em] text-white">
-            H A M M A M &nbsp; &amp; &nbsp; S P A
-          </h2>
+          <h2 className="mt-3 text-2xl md:text-4xl font-light tracking-[0.35em] text-white">H A M M A M &nbsp; &amp; &nbsp; S P A</h2>
         </motion.div>
       </div>
 
@@ -53,7 +50,7 @@ export default function HeroLanding() {
         className="group absolute bottom-6 right-4 z-10 grid h-12 w-12 place-items-center rounded-full bg-green-500 text-black shadow-lg hover:scale-105 transition"
         aria-label="WhatsApp"
       >
-        <Whatsapp />
+        + <SiWhatsapp size={24} />{" "}
       </a>
     </section>
   );
