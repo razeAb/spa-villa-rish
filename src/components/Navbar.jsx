@@ -1,28 +1,31 @@
-import { Menu } from "lucide-react";
-
 export default function Navbar() {
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-0 z-50">
-      <div className="mx-auto max-w-7xl px-4">
-        <div className="flex items-center justify-between py-5">
-          <div className="pointer-events-auto flex items-center gap-3">
-            <div className="grid place-items-center h-10 w-10 rounded-full border border-white/40">
-              <div className="h-2 w-2 rounded-full bg-white/80" />
-            </div>
-            <div className="leading-tight">
-              <div className="text-white/90 uppercase tracking-[0.35em] text-[11px] font-ui">shevet</div>
-              <div className="text-white/60 text-[10px] tracking-[0.2em] font-ui">h a m m a m &nbsp;&amp;&nbsp; s p a</div>
-            </div>
+    <header className="absolute top-6 left-0 right-0 z-30">
+      <div className="mx-auto flex max-w-[768px] items-center justify-between px-6 text-[11px] font-light tracking-[0.25em] text-white/90">
+        {/* Left Logo */}
+        <div className="flex items-center gap-2">
+          <img src="https://placehold.co/40x40" alt="Shevet logo" className="h-6 w-6 object-contain" />
+          <div className="leading-tight text-white/90">
+            <div className="text-xs tracking-[0.15em]">shevet</div>
+            <div className="text-[9px] tracking-[0.2em] text-white/70">hammam & spa</div>
           </div>
+        </div>
 
-          <nav className="pointer-events-auto hidden md:block">
-            <button className="text-white/80 hover:text-white uppercase tracking-[0.3em] italic text-sm font-ui">Rituals&nbsp;+</button>
-          </nav>
+        {/* Center Nav */}
+        <nav>
+          <a href="#rituals" className="font-light italic text-white/90 tracking-[0.2em] text-sm transition hover:text-white">
+            Rituals <span className="text-white/50 ml-1">+</span>
+          </a>
+        </nav>
 
-          <div className="pointer-events-auto flex items-center gap-3 text-white/80 hover:text-white">
-            <button className="uppercase tracking-[0.3em] text-sm font-ui">Menu</button>
-            <span className="h-px w-6 bg-white/50 inline-block" />
-            <Menu size={18} className="opacity-70" />
+        {/* Right Menu Icon */}
+        <div className="flex items-center gap-2">
+          <a href="#menu" className="font-light italic text-white/90 tracking-[0.2em] text-sm transition hover:text-white">
+            Menu
+          </a>
+          <div className="flex flex-col justify-center gap-[2px]">
+            <span className="w-4 h-[2px] bg-[#d8bca6] block" />
+            <span className="w-3 h-[2px] bg-[#d8bca6] block" />
           </div>
         </div>
       </div>
