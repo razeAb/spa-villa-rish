@@ -1,8 +1,8 @@
 export default function Navbar() {
   return (
     <header className="absolute left-0 right-0 top-0 z-30">
-      <div className="mx-auto flex w-full max-w-[768px] items-start justify-between px-6 pt-6 text-white">
-        <div className="flex items-center gap-3 text-white/90">
+      <div className="mx-auto flex w-full max-w-[768px] items-start px-6 pt-6 text-white">
+        <div className="flex flex-1 items-center gap-3 text-white/90">
           <div className="grid h-10 w-10 place-items-center rounded-full border border-white/40 bg-white/5 backdrop-blur">
             <span className="h-2 w-2 rounded-full bg-white/80" />
           </div>
@@ -12,13 +12,13 @@ export default function Navbar() {
           </div>
         </div>
 
-        <nav className="pt-1 text-sm font-light uppercase tracking-[0.45em] text-white/80">
+        <nav className="flex flex-1 justify-center pt-1 text-sm font-light uppercase tracking-[0.45em] text-white/80">
           <a href="#rituals" className="transition hover:text-white">
             Rituals +
           </a>
         </nav>
 
-        <div className="flex items-center gap-3 pt-1 text-sm font-light uppercase tracking-[0.4em] text-white/80">
+        <div className="flex flex-1 items-center justify-end gap-3 pt-1 text-sm font-light uppercase tracking-[0.4em] text-white/80">
           <a href="#menu" className="transition hover:text-white">
             Menu
           </a>
