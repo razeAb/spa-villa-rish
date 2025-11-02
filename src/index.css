@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -8,4 +8,19 @@ body {
   font-family: "Playfair Display", serif;
   background-color: #000;
   color: #fff;
+}
+
+:root {
+  --fc-border-color: rgba(255, 255, 255, 0.08);
+}
+
+.bg-lines {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 0,
+    rgba(255, 255, 255, 0.06) 1px,
+    transparent 1px,
+    transparent 120px
+  );
+  opacity: 0.2;
 }

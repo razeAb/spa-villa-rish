@@ -1,31 +1,30 @@
 export default function Navbar() {
   return (
-    <header className="absolute top-6 left-0 right-0 z-30">
-      <div className="mx-auto flex max-w-[768px] items-center justify-between px-6 text-[11px] font-light tracking-[0.25em] text-white/90">
-        {/* Left Logo */}
-        <div className="flex items-center gap-2">
-          <img src="https://placehold.co/40x40" alt="Shevet logo" className="h-6 w-6 object-contain" />
-          <div className="leading-tight text-white/90">
-            <div className="text-xs tracking-[0.15em]">shevet</div>
-            <div className="text-[9px] tracking-[0.2em] text-white/70">hammam & spa</div>
+    <header className="absolute left-0 right-0 top-0 z-30">
+      <div className="mx-auto flex w-full max-w-[768px] items-start justify-between px-6 pt-6 text-white">
+        <div className="flex items-center gap-3 text-white/90">
+          <div className="grid h-10 w-10 place-items-center rounded-full border border-white/40 bg-white/5 backdrop-blur">
+            <span className="h-2 w-2 rounded-full bg-white/80" />
+          </div>
+          <div className="leading-tight">
+            <div className="text-[13px] font-light tracking-[0.35em] uppercase">shevet</div>
+            <div className="text-[10px] font-light tracking-[0.28em] text-white/70">h a m m a m &nbsp;+&nbsp; s p a</div>
           </div>
         </div>
 
-        {/* Center Nav */}
-        <nav>
-          <a href="#rituals" className="font-light italic text-white/90 tracking-[0.2em] text-sm transition hover:text-white">
-            Rituals <span className="text-white/50 ml-1">+</span>
+        <nav className="pt-1 text-sm font-light uppercase tracking-[0.45em] text-white/80">
+          <a href="#rituals" className="transition hover:text-white">
+            Rituals +
           </a>
         </nav>
 
-        {/* Right Menu Icon */}
-        <div className="flex items-center gap-2">
-          <a href="#menu" className="font-light italic text-white/90 tracking-[0.2em] text-sm transition hover:text-white">
+        <div className="flex items-center gap-3 pt-1 text-sm font-light uppercase tracking-[0.4em] text-white/80">
+          <a href="#menu" className="transition hover:text-white">
             Menu
           </a>
-          <div className="flex flex-col justify-center gap-[2px]">
-            <span className="w-4 h-[2px] bg-[#d8bca6] block" />
-            <span className="w-3 h-[2px] bg-[#d8bca6] block" />
+          <div className="flex flex-col gap-[3px]">
+            <span className="block h-[2px] w-4 bg-emerald-300/80" />
+            <span className="ml-auto block h-[2px] w-3 bg-emerald-300/60" />
           </div>
         </div>
       </div>
