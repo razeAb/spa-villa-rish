@@ -1,19 +1,12 @@
 import { motion } from "framer-motion";
 import { FaChevronRight, FaWhatsapp } from "react-icons/fa";
 
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1602910340464-34d3aac2c229?auto=format&fit=crop&w=1600&q=80";
-
 export default function HeroLanding() {
   return (
-    <section className="relative isolate flex min-h-[860px] w-full justify-center overflow-hidden bg-black text-white md:min-h-[100dvh]">
-      {/* Background image */}
-      <img
-        src={HERO_IMAGE}
-        alt="Spa interior with warm lighting"
-        className="absolute inset-0 h-full w-full object-cover opacity-95"
-      />
-
+    <section
+      className="relative isolate flex min-h-[100dvh] w-full justify-center overflow-hidden bg-cover bg-center bg-no-repeat text-white"
+      style={{ backgroundImage: "url('/photos/spa-home.jpg')" }}
+    >
       {/* Overlays */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/20" />
       <div className="absolute inset-0 bg-gradient-to-br from-black/45 via-black/30 to-transparent" />
@@ -33,8 +26,7 @@ export default function HeroLanding() {
         >
           <h1 className="text-[34px] font-light leading-[1.6] tracking-[0.62em] text-white drop-shadow-md sm:text-[38px]">
             S H E V E T
-            <br />
-            H A M M A M &nbsp; &amp; &nbsp; S P A
+            <br />H A M M A M &nbsp; &amp; &nbsp; S P A
           </h1>
         </motion.div>
       </div>
@@ -55,11 +47,7 @@ export default function HeroLanding() {
 
       {/* Language selector */}
       <button className="absolute bottom-6 left-6 z-10 flex items-center gap-3 rounded-full border border-white/30 bg-white/95 px-3 py-1.5 text-xs font-medium text-black shadow-lg shadow-black/30 transition hover:bg-white">
-        <img
-          src="https://flagcdn.com/w20/gb.png"
-          alt="English"
-          className="h-4 w-5 rounded-sm object-cover"
-        />
+        <img src="https://flagcdn.com/w20/gb.png" alt="English" className="h-4 w-5 rounded-sm object-cover" />
         English
         <FaChevronRight className="text-[10px]" />
       </button>
