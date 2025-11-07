@@ -1,11 +1,6 @@
 import React from "react";
 
 export default function VipPackage() {
-  return <div>VipPackage</div>;
-}
-// Second section - "Roman Ritual"
-// Place this right under <HeroLanding/> in your page file
-export function RomanRitualSection() {
   return (
     <section
       id="next-section"
