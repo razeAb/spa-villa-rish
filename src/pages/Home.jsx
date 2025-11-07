@@ -1,6 +1,10 @@
 import Navbar from "../components/Navbar";
 import HeroLanding from "../components/HeroLanding";
 import VipPackage from "../components/VipPackage";
+import TurkishHammamPackage from "../components/TurkishHammamPackage";
+import SpaDayPackage from "../components/SpaDayPackage";
+import ServicesPage from "../components/ServicesPage";
+import VillaStayPage from "../components/VillaStayPage";
 
 export default function Home() {
   return (
@@ -8,6 +12,10 @@ export default function Home() {
       <Navbar />
       <HeroLanding />
       <VipPackage />
+      <TurkishHammamPackage />
+      <SpaDayPackage />
+      <ServicesPage />
+      <VillaStayPage />
     </div>
   );
 }
