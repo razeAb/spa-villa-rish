@@ -25,8 +25,7 @@ export default function HeroLanding() {
           className="uppercase"
         >
           <h1 className="text-[34px] font-light leading-[1.6] tracking-[0.62em] text-white drop-shadow-md sm:text-[38px]">
-            S H E V E T
-            <br />H A M M A M &nbsp; &amp; &nbsp; S P A
+spa rish            <br />H A M M A M &nbsp; &amp; &nbsp; S P A
           </h1>
         </motion.div>
       </div>
