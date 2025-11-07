@@ -3,9 +3,9 @@ import React from "react";
 export default function VipPackage() {
   return (
     <section
-      id="next-section"
+      id="packages"
       className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-cover bg-center bg-no-repeat text-white"
-      style={{ backgroundImage: "url('/photos/vipPackage.jpeg')" }} // ← ככה נכון
+      style={{ backgroundImage: "url('/photos/vipPackage.jpeg')" }}
     >
       {/* Overlays */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
@@ -29,26 +29,26 @@ export default function VipPackage() {
       <div className="relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-[1100px] items-center px-6 py-24 md:px-10">
         <div className="max-w-[680px] text-left drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)]">
           <p className="mb-6 text-sm tracking-[0.35em] text-white/85 uppercase">
-            Rituals <span className="text-white/60">+</span>
+            Packages <span className="text-white/60">+</span>
           </p>
 
           <h2 className="font-serif text-[42px] leading-[1.1] sm:text-[56px]">
-            The Ultimate
-            <br className="hidden sm:block" />
-            <span className="italic">Roman Ritual</span>
+            VIP Couple Package
           </h2>
 
-          <p className="mt-6 max-w-[60ch] text-base leading-relaxed text-white/85">
-            Pamper yourself as Roman nobility did in ancient times, to a 30 minute head-to-toe cleansing ceremony in the hot hammam. While
-            your body is resting on the marble floor, our therapists will wash and refresh your body with a natural sponge gourd and olive
-            oil soap, and release toxins with a hemp whip. After a short rest you will enjoy an hour-long relaxing massage accompanied by
-            oils enriched with nutritious extracts.
+          <ul className="mt-6 list-disc space-y-3 pl-5 text-base leading-relaxed text-white/85">
+            <li>Entry for two, up to 3 hours</li>
+            <li>50-minute massage for each person in a private massage room</li>
+            <li>Free access to the Turkish hammam, sauna & jacuzzi</li>
+            <li>Coffee & cake corner</li>
+          </ul>
+
+          <p className="mt-8 text-lg italic">
+            ₪1,200 — VIP Couple
           </p>
 
-          <p className="mt-6 text-white/90 italic">90 Minutes &nbsp;–&nbsp; 840 NIS/Person, 1480 NIS/Couple</p>
-
           <a
-            href="#booking" // שנה לעוגן או לקישור הזמנה בפועל
+            href="#booking"
             className="mt-8 inline-flex items-center gap-2 rounded-md border border-white/30 bg-white/10 px-6 py-3 text-sm tracking-widest ring-1 ring-white/10 backdrop-blur transition hover:bg-white/15"
           >
             Book Now
