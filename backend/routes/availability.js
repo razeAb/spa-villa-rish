@@ -40,7 +40,19 @@ router.get("/", async (req, res) => {
       existingBookingsUtc: existing,
     });
 
-    res.json({ slots });
+    const reserved = existing
+      .map((booking) => {
+        const start = DateTime.fromJSDate(booking.startUtc).setZone("Asia/Jerusalem");
+        const end = DateTime.fromJSDate(booking.endUtc).setZone("Asia/Jerusalem");
+        return {
+          startUtc: booking.startUtc,
+          endUtc: booking.endUtc,
+          label: `${start.toFormat("HH:mm")} - ${end.toFormat("HH:mm")}`,
+        };
+      })
+      .sort((a, b) => new Date(a.startUtc) - new Date(b.startUtc));
+
+    res.json({ slots, reserved });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Server error" });

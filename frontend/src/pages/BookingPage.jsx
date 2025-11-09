@@ -74,6 +74,27 @@ const sectionMotion = {
 };
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
+const buildDateWindow = (locale) => {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  return Array.from({ length: 14 }).map((_, index) => {
+    const current = new Date(start);
+    current.setDate(current.getDate() + index);
+    return {
+      iso: current.toISOString().slice(0, 10),
+      weekday: current.toLocaleDateString(locale === "he" ? "he-IL" : "en-US", { weekday: "short" }),
+      label: current.toLocaleDateString(locale === "he" ? "he-IL" : "en-US", { month: "short", day: "numeric" }),
+    };
+  });
+};
+const formatDateForDisplay = (iso, locale) => {
+  const dateObj = new Date(iso);
+  return dateObj.toLocaleDateString(locale === "he" ? "he-IL" : "en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+};
 
 export default function BookingPage() {
   const { locale } = useLocale();
@@ -93,6 +114,7 @@ export default function BookingPage() {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slotsError, setSlotsError] = useState("");
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [reservedSlots, setReservedSlots] = useState([]);
 
   const [payment, setPayment] = useState({ cardNumber: "", expiry: "", cvc: "" });
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
@@ -107,7 +129,7 @@ export default function BookingPage() {
         if (!alive) return;
         setServices(data);
         if (data.length) {
-          setServiceId(String(data[0]._id));
+          setServiceId((prev) => prev || String(data[0]._id));
         }
       })
       .catch(() => {
@@ -132,12 +154,14 @@ export default function BookingPage() {
       .then((data) => {
         if (!alive) return;
         setSlots(data?.slots || []);
+        setReservedSlots(data?.reserved || []);
         setSelectedSlot(null);
       })
       .catch(() => {
         if (!alive) return;
         setSlotsError(copy.error);
         setSlots([]);
+        setReservedSlots([]);
       })
       .finally(() => {
         if (alive) setSlotsLoading(false);
@@ -151,6 +175,14 @@ export default function BookingPage() {
     () => services.find((s) => String(s._id) === String(serviceId)),
     [services, serviceId]
   );
+  const dateOptions = useMemo(() => buildDateWindow(locale), [locale]);
+
+  useEffect(() => {
+    if (!dateOptions.length) return;
+    if (!dateOptions.some((option) => option.iso === date)) {
+      setDate(dateOptions[0].iso);
+    }
+  }, [dateOptions, date]);
 
   const handleNext = () => {
     setFormError("");
@@ -246,16 +278,31 @@ export default function BookingPage() {
                 </select>
               </label>
 
-              <label className="block text-sm">
-                {copy.dateLabel}
-                <input
-                  type="date"
-                  value={date}
-                  min={todayISO()}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-white"
-                />
-              </label>
+              <div>
+                <p className="text-sm">{copy.dateLabel}</p>
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {dateOptions.map((option) => {
+                    const isSelected = option.iso === date;
+                    return (
+                      <button
+                        type="button"
+                        key={option.iso}
+                        onClick={() => setDate(option.iso)}
+                        className={`rounded-xl border px-3 py-3 text-left ${
+                          isSelected
+                            ? "border-white bg-white text-black"
+                            : "border-white/20 bg-white/5 text-white hover:border-white/60"
+                        }`}
+                      >
+                        <span className="block text-xs uppercase tracking-[0.3em] text-white/60">
+                          {option.weekday}
+                        </span>
+                        <span className="text-lg font-semibold">{option.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
               <div>
                 <p className="text-sm">{copy.slotsLabel}</p>
@@ -283,6 +330,33 @@ export default function BookingPage() {
                     ))}
                   </div>
                 )}
+                {selectedSlot ? (
+                  <div className="mt-4 rounded-2xl border border-emerald-200/40 bg-emerald-500/10 px-4 py-3 text-sm text-white">
+                    <p className="text-xs uppercase tracking-[0.3em] text-emerald-200">
+                      {locale === "he" ? "בחירה" : "Selected slot"}
+                    </p>
+                    <p className="mt-1 font-semibold">
+                      {formatDateForDisplay(date, locale)} · {selectedSlot.label}
+                    </p>
+                  </div>
+                ) : null}
+                {reservedSlots.length ? (
+                  <div className="mt-5">
+                    <p className="text-xs uppercase tracking-[0.3em] text-white/50">
+                      {locale === "he" ? "תורים תפוסים" : "Reserved slots"}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {reservedSlots.map((slot) => (
+                        <span
+                          key={slot.startUtc}
+                          className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/70"
+                        >
+                          {slot.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </>
           )}
