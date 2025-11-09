@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { NavLink } from "react-router-dom";
 import { api } from "../api/client";
 import { useLocale } from "../context/LocaleContext.jsx";
+import { getTreatmentsForLocale } from "../data/treatments";
 
 const COPY = {
   he: {
@@ -120,6 +121,17 @@ export default function BookingPage() {
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
   const [formError, setFormError] = useState("");
 
+  const fallbackTreatments = useMemo(
+    () =>
+      getTreatmentsForLocale(locale).map((treatment) => ({
+        _id: `demo-${treatment.id}`,
+        title: treatment.title,
+        durationMin: treatment.durationMin,
+        isFallback: true,
+      })),
+    [locale]
+  );
+
   useEffect(() => {
     let alive = true;
     setServicesLoading(true);
@@ -129,7 +141,10 @@ export default function BookingPage() {
         if (!alive) return;
         setServices(data);
         if (data.length) {
-          setServiceId((prev) => prev || String(data[0]._id));
+          setServiceId((prev) => {
+            if (!prev) return String(data[0]._id);
+            return /^[a-f\d]{24}$/i.test(prev) ? prev : String(data[0]._id);
+          });
         }
       })
       .catch(() => {
@@ -145,7 +160,29 @@ export default function BookingPage() {
   }, [copy.error]);
 
   useEffect(() => {
+    if (services.length || !fallbackTreatments.length || serviceId) return;
+    setServiceId(fallbackTreatments[0]._id);
+  }, [services.length, fallbackTreatments, serviceId]);
+
+  const serviceOptions = useMemo(
+    () => (services.length ? services : fallbackTreatments),
+    [services, fallbackTreatments]
+  );
+  const selectedService = useMemo(
+    () => serviceOptions.find((s) => String(s._id) === String(serviceId)),
+    [serviceOptions, serviceId]
+  );
+  const serviceIdIsMongoId = /^[a-f\d]{24}$/i.test(String(serviceId));
+  useEffect(() => {
     if (!serviceId || !date) return;
+    if (!serviceIdIsMongoId) {
+      setSlotsLoading(false);
+      setSlotsError("");
+      setSlots([]);
+      setReservedSlots([]);
+      setSelectedSlot(null);
+      return;
+    }
     let alive = true;
     setSlotsLoading(true);
     setSlotsError("");
@@ -169,12 +206,7 @@ export default function BookingPage() {
     return () => {
       alive = false;
     };
-  }, [serviceId, date, copy.error]);
-
-  const selectedService = useMemo(
-    () => services.find((s) => String(s._id) === String(serviceId)),
-    [services, serviceId]
-  );
+  }, [serviceId, date, copy.error, serviceIdIsMongoId]);
   const dateOptions = useMemo(() => buildDateWindow(locale), [locale]);
 
   useEffect(() => {
@@ -259,10 +291,9 @@ export default function BookingPage() {
           <h2 className="text-2xl font-semibold text-white">{copy.calendarTitle}</h2>
           {servicesLoading ? (
             <p className="text-sm text-white/70">Loading…</p>
-          ) : servicesError ? (
-            <p className="text-sm text-red-400">{servicesError}</p>
           ) : (
             <>
+              {servicesError ? <p className="text-sm text-red-400">{servicesError}</p> : null}
               <label className="block text-sm">
                 {copy.serviceLabel}
                 <select
@@ -270,7 +301,7 @@ export default function BookingPage() {
                   value={serviceId}
                   onChange={(e) => setServiceId(e.target.value)}
                 >
-                  {services.map((service) => (
+                  {serviceOptions.map((service) => (
                     <option key={service._id} value={service._id}>
                       {service.title}
                     </option>

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FaChevronRight } from "react-icons/fa";
 import { useLocale } from "../context/LocaleContext.jsx";
+import { getTreatmentsForLocale } from "../data/treatments";
 
 const BOOKING_LINK = "/booking";
 const sectionMotion = {
@@ -22,32 +23,6 @@ const CONTENT = {
     groupHeading: "חבילות לקבוצות",
     priceLabel: "מחיר:",
     cta: "שריין מקום",
-    massages: [
-      {
-        title: "עיסוי 50 דקות",
-        type: "עיסוי",
-        price: "לפי בחירה",
-        desc: "עיסוי מפנק של 50 דקות בחדר פרטי מעוצב ואינטימי.",
-      },
-      {
-        title: "עיסוי חמאם · 30 דק׳",
-        type: "חמאם",
-        price: "לפי בחירה",
-        desc: "עיסוי מסורתי על השיש החם בתוך החמאם הטורקי — חוויה אותנטית ומיוחדת.",
-      },
-      {
-        title: "עיסוי רפואי",
-        type: "רפואי",
-        price: "לפי בחירה",
-        desc: "עיסוי טיפולי מקצועי להקלה על כאבים ולשחרור מתחים, מבוצע על ידי מטפל מוסמך.",
-      },
-      {
-        title: "שוודי / תאילנדי · 50 דק׳",
-        type: "שוודי / תאילנדי",
-        price: "לפי בחירה",
-        desc: "בחרו בין עיסוי שוודי קלאסי לבין עיסוי תאילנדי מסורתי, במפגש של 50 דקות.",
-      },
-    ],
     groups: [
       {
         title: "יום קבוצתי",
@@ -65,32 +40,6 @@ const CONTENT = {
     groupHeading: "Group Packages",
     priceLabel: "Price:",
     cta: "Book Now",
-    massages: [
-      {
-        title: "50-Minute Massage",
-        type: "Massage 50 min",
-        price: "By choice",
-        desc: "A pampering 50-minute massage in a designed, intimate private room.",
-      },
-      {
-        title: "Hammam Massage · 30 min",
-        type: "Hammam 30 min",
-        price: "By choice",
-        desc: "Traditional massage on the hot marble slab inside the Turkish hammam — a unique authentic experience.",
-      },
-      {
-        title: "Medical Massage",
-        type: "Medical",
-        price: "By choice",
-        desc: "Professional therapeutic massage tailored for pain and tension relief, performed by a certified therapist.",
-      },
-      {
-        title: "Swedish / Thai · 50 min",
-        type: "Swedish / Thai",
-        price: "By choice",
-        desc: "Choose between a classic Swedish massage or a traditional Thai massage, 50-minute session.",
-      },
-    ],
     groups: [
       {
         title: "Group Day",
@@ -148,6 +97,7 @@ export default function ServicesPage() {
   const { locale } = useLocale();
   const isHebrew = locale === "he";
   const copy = CONTENT[locale];
+  const massages = getTreatmentsForLocale(locale);
 
   return (
     <motion.section
@@ -175,7 +125,7 @@ export default function ServicesPage() {
             {copy.massageHeading}
           </h3>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {copy.massages.map((m, i) => (
+            {massages.map((m, i) => (
               <Card key={i} item={m} isHebrew={isHebrew} priceLabel={copy.priceLabel} ctaLabel={copy.cta} />
             ))}
           </div>
