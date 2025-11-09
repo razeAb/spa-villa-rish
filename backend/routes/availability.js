@@ -6,6 +6,16 @@ const Settings = require("../models/Settings");
 const { generateSlotsForDate } = require("../utils/availability");
 const router = express.Router();
 
+const DEFAULT_OPENING_HOURS = [
+  { dow: 0, open: "09:00", close: "19:00" },
+  { dow: 1, open: "09:00", close: "19:00" },
+  { dow: 2, open: "09:00", close: "19:00" },
+  { dow: 3, open: "09:00", close: "19:00" },
+  { dow: 4, open: "09:00", close: "15:00" },
+  { dow: 5, open: "10:00", close: "15:00" },
+  { dow: 6, open: "10:00", close: "15:00" },
+];
+
 // GET /api/availability?serviceId=...&date=2025-11-09
 router.get("/", async (req, res) => {
   try {
@@ -17,7 +27,8 @@ router.get("/", async (req, res) => {
 
     // opening hours
     const dow = DateTime.fromISO(date, { zone: "Asia/Jerusalem" }).weekday % 7; // convert to 0..6 (Sun..Sat)
-    const openingSpec = settings?.openingHours?.find((h) => h.dow === dow);
+    const weeklyOpening = settings?.openingHours?.length ? settings.openingHours : DEFAULT_OPENING_HOURS;
+    const openingSpec = weeklyOpening.find((h) => h.dow === dow);
     if (!openingSpec) return res.json({ slots: [] });
 
     // fetch existing bookings for that date (UTC range of the day)
