@@ -1,13 +1,22 @@
 // src/App.js
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import AppLayout from "./components/AppLayout";
 import Home from "./pages/Home.jsx";
-import VipPackagePage from "./components/VipPackage.jsx";
+import VipPackagePage from "./pages/VipPackagePage.jsx";
 import "./index.css";
 
 export default function App() {
+  const location = useLocation();
+
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-    </Routes>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<AppLayout />}>
+          <Route index element={<Home />} />
+          <Route path="vip-package" element={<VipPackagePage />} />
+        </Route>
+      </Routes>
+    </AnimatePresence>
   );
 }

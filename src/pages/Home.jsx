@@ -1,4 +1,4 @@
-import Navbar from "../components/Navbar";
+import { motion } from "framer-motion";
 import HeroLanding from "../components/HeroLanding";
 import VipPackage from "../components/VipPackage";
 import TurkishHammamPackage from "../components/TurkishHammamPackage";
@@ -8,14 +8,19 @@ import VillaStayPage from "../components/VillaStayPage";
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen bg-black text-white">
-      <Navbar />
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -18 }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
+      className="space-y-0"
+    >
       <HeroLanding />
       <VipPackage />
       <TurkishHammamPackage />
       <SpaDayPackage />
       <ServicesPage />
       <VillaStayPage />
-    </div>
+    </motion.div>
   );
 }
