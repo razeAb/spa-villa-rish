@@ -8,7 +8,7 @@ function generateSlotsForDate({
   bufferMin,
   slotStepMin,
   openingSpec,
-  existingBookingsUtc,
+  existingBookingsUtc = [],
 }) {
   const day = DateTime.fromISO(dateISO, { zone: tz }).startOf("day");
   const open = day.set({
