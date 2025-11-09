@@ -8,7 +8,7 @@ const router = express.Router();
 // יצירת הזמנה (לקוח)
 router.post('/', async (req,res) => {
   try {
-    const { serviceId, customerName, phone, startUtc } = req.body;
+    const { serviceId, customerName, phone, startUtc, note } = req.body;
     if (!serviceId || !customerName || !phone || !startUtc) return res.status(400).json({ error: 'Missing fields' });
 
     const service = await Service.findById(serviceId);
@@ -26,12 +26,17 @@ router.post('/', async (req,res) => {
     });
     if (clash) return res.status(409).json({ error: 'Slot already booked' });
 
-    const created = await Booking.create({
+    const payload = {
       serviceId, customerName, phone,
       startUtc: start.toJSDate(),
       endUtc: end.toJSDate(),
       status: 'confirmed'
-    });
+    };
+    if (typeof note === 'string' && note.trim()) {
+      payload.note = note.trim();
+    }
+
+    const created = await Booking.create(payload);
 
     res.status(201).json(created);
   } catch (e) {

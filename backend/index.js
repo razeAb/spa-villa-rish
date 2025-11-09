@@ -6,6 +6,7 @@ require("dotenv").config();
 const availability = require("./routes/availability");
 const bookings = require("./routes/booking");
 const auth = require("./routes/auth");
+const services = require("./routes/services");
 
 const app = express();
 app.use(cors());
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use("/api/auth", auth);
 app.use("/api/availability", availability);
 app.use("/api/bookings", bookings);
+app.use("/api/services", services);
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 

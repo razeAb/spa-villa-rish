@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { useLocale } from "../context/LocaleContext.jsx";
 
 const COPY = {
@@ -78,14 +79,14 @@ export default function TurkishHammamPackage() {
 
           <p className="mt-8 text-lg italic">{copy.price}</p>
 
-          <a
-            href="#booking"
+          <Link
+            to="/booking"
             className={`mt-8 inline-flex items-center gap-2 rounded-md border border-white/30 bg-white/10 px-6 py-3 text-sm ring-1 ring-white/10 backdrop-blur transition hover:bg-white/15 ${
               isHebrew ? "" : "tracking-widest"
             }`}
           >
             {copy.cta}
-          </a>
+          </Link>
         </div>
       </div>
     </motion.section>

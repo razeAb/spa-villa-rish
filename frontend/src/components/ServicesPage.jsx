@@ -1,10 +1,11 @@
 // src/pages/ServicesPage.jsx
 import React from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { FaChevronRight } from "react-icons/fa";
 import { useLocale } from "../context/LocaleContext.jsx";
 
-const BOOKING_LINK = "#booking";
+const BOOKING_LINK = "/booking";
 const sectionMotion = {
   initial: { opacity: 0, y: 35 },
   whileInView: { opacity: 1, y: 0 },
@@ -130,15 +131,15 @@ function Card({ item, isHebrew, priceLabel, ctaLabel }) {
         <span className="text-lg italic">{item.price}</span>
       </div>
 
-      <a
-        href={BOOKING_LINK}
+      <Link
+        to={BOOKING_LINK}
         className={`mt-6 inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/10 px-4 py-2 text-sm ring-1 ring-white/10 transition hover:bg-white/15 ${
           isHebrew ? "justify-center" : "tracking-widest"
         }`}
       >
         {ctaLabel}
         <FaChevronRight className={`text-xs ${isHebrew ? "scale-x-[-1]" : ""}`} />
-      </a>
+      </Link>
     </motion.div>
   );
 }

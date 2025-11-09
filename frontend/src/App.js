@@ -4,6 +4,8 @@ import { AnimatePresence } from "framer-motion";
 import AppLayout from "./components/AppLayout";
 import Home from "./pages/Home.jsx";
 import VipPackagePage from "./pages/VipPackagePage.jsx";
+import BookingPage from "./pages/BookingPage.jsx";
+import AdminConsole from "./pages/AdminConsole.jsx";
 import "./index.css";
 
 export default function App() {
@@ -15,7 +17,9 @@ export default function App() {
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Home />} />
           <Route path="vip-package" element={<VipPackagePage />} />
+          <Route path="booking" element={<BookingPage />} />
         </Route>
+        <Route path="/admin" element={<AdminConsole />} />
       </Routes>
     </AnimatePresence>
   );
