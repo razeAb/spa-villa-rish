@@ -7,6 +7,7 @@ import { useLocale } from "../context/LocaleContext.jsx";
 import { getTreatmentsForLocale, getGroupPackagesForLocale } from "../data/treatments";
 
 const BOOKING_LINK = "/booking";
+
 const sectionMotion = {
   initial: { opacity: 0, y: 35 },
   whileInView: { opacity: 1, y: 0 },
@@ -35,10 +36,12 @@ const CONTENT = {
   },
 };
 
+// Build the router link for each service
 const buildBookingLinkProps = (identifier) => {
   if (!identifier) {
     return { to: BOOKING_LINK, state: undefined };
   }
+
   const serviceId = String(identifier);
   return {
     to: { pathname: BOOKING_LINK, search: `?serviceId=${encodeURIComponent(serviceId)}` },
@@ -46,6 +49,10 @@ const buildBookingLinkProps = (identifier) => {
   };
 };
 
+// Card updated to use RAW_SERVICES fields:
+// item.typeLabel  → type
+// item.description → desc
+// item.priceDisplay → price
 function Card({ item, isHebrew, priceLabel, ctaLabel, bookingLink, bookingState }) {
   return (
     <motion.div
@@ -58,24 +65,28 @@ function Card({ item, isHebrew, priceLabel, ctaLabel, bookingLink, bookingState 
       }`}
       dir={isHebrew ? "rtl" : "ltr"}
     >
-      {/* Title row */}
+      {/* Title + Type */}
       <div className={`mb-3 flex items-center justify-between gap-3 ${isHebrew ? "flex-row-reverse" : ""}`}>
         <h3 className="font-serif text-2xl leading-tight">{item.title}</h3>
-        <span
-          className={`shrink-0 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] text-white/80 ${
-            isHebrew ? "tracking-[0.15em]" : "tracking-wide uppercase"
-          }`}
-        >
-          {item.type}
-        </span>
+
+        {item.typeLabel && (
+          <span
+            className={`shrink-0 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] text-white/80 ${
+              isHebrew ? "tracking-[0.15em]" : "tracking-wide uppercase"
+            }`}
+          >
+            {item.typeLabel}
+          </span>
+        )}
       </div>
 
-      <p className="text-white/85">{item.desc}</p>
+      {/* Description */}
+      <p className="text-white/85">{item.description}</p>
 
-      {/* Price row */}
+      {/* Price */}
       <div className={`mt-5 flex items-center justify-between gap-2 ${isHebrew ? "flex-row-reverse" : ""}`}>
         <span className="text-sm text-white/80">{priceLabel}</span>
-        <span className="text-lg italic">{item.price}</span>
+        <span className="text-lg italic">{item.priceDisplay}</span>
       </div>
 
       {/* CTA */}
@@ -85,7 +96,6 @@ function Card({ item, isHebrew, priceLabel, ctaLabel, bookingLink, bookingState 
         className={`mt-6 inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/10 px-4 py-2 text-sm ring-1 ring-white/10 transition hover:bg-white/15 ${
           isHebrew ? "justify-center" : "tracking-widest"
         }`}
-        dir={isHebrew ? "rtl" : "ltr"}
       >
         {ctaLabel}
         <FaChevronRight className={`text-xs ${isHebrew ? "-scale-x-100" : ""}`} />
@@ -98,19 +108,21 @@ export default function ServicesPage() {
   const { locale } = useLocale();
   const isHebrew = locale === "he";
   const copy = CONTENT[locale];
+
+  // Now these contain ALL updated prices & descriptions from RAW_SERVICES
   const massages = getTreatmentsForLocale(locale);
   const groupPackages = getGroupPackagesForLocale(locale);
 
   return (
     <motion.section
       {...sectionMotion}
-      data-section="services"
       id="all-services"
-      dir={isHebrew ? "rtl" : "ltr"} // ✅ enforce RTL for Hebrew
+      data-section="services"
+      dir={isHebrew ? "rtl" : "ltr"}
       className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-gradient-to-b from-black via-black/95 to-black text-white"
       style={{ scrollMarginTop: "120px" }}
     >
-      {/* Edge lines like the hero */}
+      {/* Side lines */}
       <div className="pointer-events-none absolute inset-y-8 left-[3.5%] w-px bg-white/10 sm:left-[6%]" />
       <div className="pointer-events-none absolute inset-y-8 right-[3.5%] w-px bg-white/10 sm:right-[6%]" />
 
@@ -123,43 +135,27 @@ export default function ServicesPage() {
         <h2 className="mt-3 text-center font-serif text-4xl sm:text-5xl">{copy.title}</h2>
         <p className="mx-auto mt-4 max-w-2xl text-center text-white/70">{copy.description}</p>
 
-        {/* Massage types */}
+        {/* Massage Types */}
         <div className="mb-10 mt-10">
           <h3 className={`mb-4 text-sm text-white/80 ${isHebrew ? "tracking-[0.2em]" : "uppercase tracking-[0.35em]"}`}>
             {copy.massageHeading}
           </h3>
+
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {massages.map((m, i) => (
+            {massages.map((m) => (
               <Card
-                key={i}
+                key={m._id}
                 item={m}
                 isHebrew={isHebrew}
                 priceLabel={copy.priceLabel}
                 ctaLabel={copy.cta}
-                {...buildBookingLinkProps(m._id || m.id)}
+                {...buildBookingLinkProps(m._id)}
               />
             ))}
           </div>
         </div>
 
-        {/* Group packages */}
-        <div className="mt-14">
-          <h3 className={`mb-4 text-sm text-white/80 ${isHebrew ? "tracking-[0.2em]" : "uppercase tracking-[0.35em]"}`}>
-            {copy.groupHeading}
-          </h3>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {groupPackages.map((g, i) => (
-              <Card
-                key={i}
-                item={g}
-                isHebrew={isHebrew}
-                priceLabel={copy.priceLabel}
-                ctaLabel={copy.cta}
-                {...buildBookingLinkProps(g._id || g.id)}
-              />
-            ))}
-          </div>
-        </div>
+       
       </div>
     </motion.section>
   );
