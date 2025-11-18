@@ -9,6 +9,7 @@ const auth = require("./routes/auth");
 const services = require("./routes/services");
 const payments = require("./routes/payments");
 const settingsRoute = require("./routes/settings");
+const { ensureCatalogServices } = require("./utils/catalog");
 
 const app = express();
 app.use(cors());
@@ -33,8 +34,10 @@ if (!mongoUri) {
 
 mongoose
   .connect(mongoUri, { dbName: process.env.DB_NAME || "spa_booking" })
-  .then(() => {
+  .then(async () => {
     console.log("Connected to MongoDB");
+    await ensureCatalogServices();
+    console.log("Catalog services synced");
     app.listen(PORT, () => console.log(`API running on :${PORT}`));
   })
   .catch((err) => {

@@ -36,24 +36,20 @@ const CONTENT = {
   },
 };
 
-// Build the router link for each service
-const buildBookingLinkProps = (identifier) => {
-  if (!identifier) {
+const buildBookingLinkProps = (service) => {
+  const slug = service?.slug || service?.serviceId || service?._id || service?.id;
+  if (!slug) {
     return { to: BOOKING_LINK, state: undefined };
   }
-
-  const serviceId = String(identifier);
+  const slugString = String(slug);
   return {
-    to: { pathname: BOOKING_LINK, search: `?serviceId=${encodeURIComponent(serviceId)}` },
-    state: { serviceId },
+    to: { pathname: BOOKING_LINK, search: `?serviceSlug=${encodeURIComponent(slugString)}` },
+    state: { serviceSlug: slugString },
   };
 };
 
-// Card updated to use RAW_SERVICES fields:
-// item.typeLabel  → type
-// item.description → desc
-// item.priceDisplay → price
-function Card({ item, isHebrew, priceLabel, ctaLabel, bookingLink, bookingState }) {
+function Card({ item, isHebrew, priceLabel, ctaLabel }) {
+  const { to, state } = buildBookingLinkProps(item);
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
@@ -91,8 +87,8 @@ function Card({ item, isHebrew, priceLabel, ctaLabel, bookingLink, bookingState 
 
       {/* CTA */}
       <Link
-        to={bookingLink}
-        state={bookingState}
+        to={to}
+        state={state}
         className={`mt-6 inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/10 px-4 py-2 text-sm ring-1 ring-white/10 transition hover:bg-white/15 ${
           isHebrew ? "justify-center" : "tracking-widest"
         }`}
@@ -144,18 +140,34 @@ export default function ServicesPage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {massages.map((m) => (
               <Card
-                key={m._id}
+                key={m.slug || m._id}
                 item={m}
                 isHebrew={isHebrew}
                 priceLabel={copy.priceLabel}
                 ctaLabel={copy.cta}
-                {...buildBookingLinkProps(m._id)}
               />
             ))}
           </div>
         </div>
 
-       
+        {/* Group Packages */}
+        <div className="mt-14">
+          <h3 className={`mb-4 text-sm text-white/80 ${isHebrew ? "tracking-[0.2em]" : "uppercase tracking-[0.35em]"}`}>
+            {copy.groupHeading}
+          </h3>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {groupPackages.map((pkg) => (
+              <Card
+                key={pkg.slug || pkg._id}
+                item={pkg}
+                isHebrew={isHebrew}
+                priceLabel={copy.priceLabel}
+                ctaLabel={copy.cta}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </motion.section>
   );

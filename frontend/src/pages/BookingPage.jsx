@@ -118,30 +118,27 @@ const formatDateForDisplay = (iso, locale) => {
   });
 };
 
-const formatServiceOption = (service, locale) => {
-  const translation = service.translations?.[locale] || service.translations?.en || {};
-  return {
-    _id: service._id || service.id || service.slug,
-    title: translation.title || service.title || "",
-    durationMin: service.durationMin,
-    priceDisplay:
-      translation.priceDisplay ||
-      service.priceDisplay ||
-      (service.priceAmount ? formatCurrency(service.priceAmount, service.priceCurrency, locale) : ""),
-    isFallback: Boolean(service.isFallback),
-  };
-};
-
 const isMongoId = (value) => /^[a-f\d]{24}$/i.test(String(value));
+const normalizeTitle = (value = "") =>
+  value
+    .normalize("NFKD")
+    .replace(/[^\w\s]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ");
 
 export default function BookingPage() {
   const { locale } = useLocale();
   const copy = COPY[locale];
   const isHebrew = locale === "he";
   const location = useLocation();
+  const locationServiceSlug = location.state?.serviceSlug;
   const locationServiceId = location.state?.serviceId;
-  const queryServiceId = useMemo(() => new URLSearchParams(location.search).get("serviceId"), [location.search]);
-  const initialServiceId = locationServiceId || queryServiceId || "";
+  const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const queryServiceSlug = queryParams.get("serviceSlug");
+  const queryServiceId = queryParams.get("serviceId");
+  const initialServiceSlug = locationServiceSlug || queryServiceSlug || "";
+  const legacyServiceId = locationServiceId || queryServiceId || "";
 
   const [step, setStep] = useState(1);
   const [contact, setContact] = useState({ customerName: "", phone: "", email: "", marketingOptIn: false });
@@ -150,7 +147,7 @@ export default function BookingPage() {
   const [servicesError, setServicesError] = useState("");
   const [servicesLoading, setServicesLoading] = useState(true);
 
-  const [serviceId, setServiceId] = useState(initialServiceId);
+  const [serviceSlug, setServiceSlug] = useState(initialServiceSlug);
   const [date, setDate] = useState(todayISO());
   const [slots, setSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -163,11 +160,9 @@ export default function BookingPage() {
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
-    if (!initialServiceId) return;
-    setServiceId(initialServiceId);
-  }, [initialServiceId]);
-
-  const fallbackTreatments = useMemo(() => getAllServicesForLocale(locale), [locale]);
+    if (!initialServiceSlug) return;
+    setServiceSlug(initialServiceSlug);
+  }, [initialServiceSlug]);
 
   useEffect(() => {
     let alive = true;
@@ -177,12 +172,6 @@ export default function BookingPage() {
       .then((data) => {
         if (!alive) return;
         setServices(data);
-        if (data.length) {
-          setServiceId((prev) => {
-            if (!prev) return String(data[0]._id);
-            return /^[a-f\d]{24}$/i.test(prev) ? prev : String(data[0]._id);
-          });
-        }
       })
       .catch(() => {
         if (!alive) return;
@@ -196,32 +185,111 @@ export default function BookingPage() {
     };
   }, [copy.error]);
 
-  useEffect(() => {
-    if (services.length || !fallbackTreatments.length || serviceId) return;
-    setServiceId(fallbackTreatments[0]._id);
-  }, [services.length, fallbackTreatments, serviceId]);
+  const catalogServices = useMemo(() => getAllServicesForLocale(locale), [locale]);
 
-  const formattedServices = useMemo(
-    () => services.map((svc) => ({ ...formatServiceOption(svc, locale), _raw: svc })),
-    [services, locale]
+  const slugByTitle = useMemo(() => {
+    const map = {};
+    catalogServices.forEach((svc) => {
+      const slug = svc.slug || svc.serviceId || svc.id || svc._id || svc.title;
+      if (!slug) return;
+      const titles = [
+        svc.title,
+        svc.translations?.en?.title,
+        svc.translations?.he?.title,
+      ];
+      titles.forEach((title) => {
+        const key = normalizeTitle(title);
+        if (key) {
+          map[key] = slug;
+        }
+      });
+    });
+    return map;
+  }, [catalogServices]);
+
+  const servicesBySlug = useMemo(() => {
+    const map = {};
+    services.forEach((svc) => {
+      const candidates = [
+        svc.slug,
+        slugByTitle[normalizeTitle(svc.title)],
+        slugByTitle[normalizeTitle(svc.translations?.en?.title)],
+        slugByTitle[normalizeTitle(svc.translations?.he?.title)],
+      ].filter(Boolean);
+      const resolvedSlug = candidates.find(Boolean);
+      if (resolvedSlug) {
+        map[resolvedSlug] = svc;
+      }
+    });
+    return map;
+  }, [services, slugByTitle]);
+
+  const servicesById = useMemo(() => {
+    const map = {};
+    services.forEach((svc) => {
+      if (svc._id) {
+        map[String(svc._id)] = svc;
+      }
+    });
+    return map;
+  }, [services]);
+
+  const serviceOptions = useMemo(
+    () =>
+      catalogServices
+        .map((svc) => {
+          const slug = svc.slug || svc.serviceId || svc._id || svc.id || svc.title;
+          if (!slug) return null;
+          return {
+            slug,
+            title: svc.title,
+            durationMin: svc.durationMin,
+            priceDisplay:
+              svc.priceDisplay ||
+              (svc.priceAmount ? formatCurrency(svc.priceAmount, svc.priceCurrency, locale) : ""),
+          };
+        })
+        .filter(Boolean),
+    [catalogServices, locale]
   );
-  const formattedFallback = useMemo(
-    () => fallbackTreatments.map((svc) => ({ ...formatServiceOption(svc, locale), _raw: svc })),
-    [fallbackTreatments, locale]
+
+  const selectedCatalogService = useMemo(
+    () => serviceOptions.find((svc) => svc.slug === serviceSlug) || null,
+    [serviceOptions, serviceSlug]
   );
-  const serviceOptions = formattedServices.length ? formattedServices : formattedFallback;
-  const selectedService = useMemo(
-    () => serviceOptions.find((s) => String(s._id) === String(serviceId)),
-    [serviceOptions, serviceId]
-  );
-  const selectedServiceDoc = useMemo(() => {
-    if (!serviceId || !services.length) return null;
-    return services.find((svc) => String(svc._id) === String(serviceId)) || null;
-  }, [services, serviceId]);
-  const serviceIdIsMongoId = isMongoId(serviceId);
+
+  const selectedServiceDoc = serviceSlug ? servicesBySlug[serviceSlug] : null;
+  const serviceIdForApi = selectedServiceDoc?._id;
+  const serviceHasLiveId = Boolean(serviceIdForApi && isMongoId(serviceIdForApi));
+
   useEffect(() => {
-    if (!serviceId || !date) return;
-    if (!serviceIdIsMongoId) {
+    if (serviceSlug) return;
+    if (legacyServiceId) {
+      const legacyDoc = servicesById[legacyServiceId];
+      if (legacyDoc) {
+        const resolvedSlug = legacyDoc.slug || slugByTitle[normalizeTitle(legacyDoc.title)];
+        if (resolvedSlug) {
+          setServiceSlug(resolvedSlug);
+          return;
+        }
+      }
+    }
+    if (serviceOptions.length) {
+      setServiceSlug(serviceOptions[0].slug);
+    }
+  }, [serviceSlug, legacyServiceId, servicesById, slugByTitle, serviceOptions]);
+
+  useEffect(() => {
+    if (!serviceSlug) return;
+    if (servicesBySlug[serviceSlug]) return;
+    const fallbackDoc = servicesById[serviceSlug];
+    if (fallbackDoc?.slug) {
+      setServiceSlug(fallbackDoc.slug);
+    }
+  }, [serviceSlug, servicesBySlug, servicesById]);
+  useEffect(() => {
+    if (!serviceSlug || !date) return;
+    if (!serviceHasLiveId) {
       setSlotsLoading(false);
       setSlotsError("");
       setSlots([]);
@@ -233,7 +301,7 @@ export default function BookingPage() {
     setSlotsLoading(true);
     setSlotsError("");
     api
-      .getAvailability(serviceId, date)
+      .getAvailability(serviceIdForApi, date)
       .then((data) => {
         if (!alive) return;
         setSlots(data?.slots || []);
@@ -252,7 +320,7 @@ export default function BookingPage() {
     return () => {
       alive = false;
     };
-  }, [serviceId, date, copy.error, serviceIdIsMongoId]);
+  }, [serviceSlug, serviceHasLiveId, serviceIdForApi, date, copy.error]);
   const dateOptions = useMemo(() => buildDateWindow(locale), [locale]);
 
   useEffect(() => {
@@ -272,11 +340,11 @@ export default function BookingPage() {
       }
       setStep(2);
     } else if (step === 2) {
-      if (!selectedService || !selectedSlot || !date) {
+      if (!selectedCatalogService || !selectedSlot || !date) {
         setFormError(copy.validations.schedule);
         return;
       }
-      if (!serviceIdIsMongoId) {
+      if (!serviceHasLiveId) {
         setFormError(copy.validations.serviceUnavailable);
         return;
       }
@@ -290,7 +358,7 @@ export default function BookingPage() {
       setFormError(copy.validations.payment);
       return;
     }
-    if (!selectedService || !selectedSlot || !serviceIdIsMongoId || !selectedServiceDoc) {
+    if (!selectedCatalogService || !selectedSlot || !serviceHasLiveId || !selectedServiceDoc) {
       setFormError(copy.validations.serviceUnavailable);
       return;
     }
@@ -383,11 +451,11 @@ export default function BookingPage() {
                 {copy.serviceLabel}
                 <select
                   className="mt-1 w-full rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-white"
-                  value={serviceId}
-                  onChange={(e) => setServiceId(e.target.value)}
+                  value={serviceSlug}
+                  onChange={(e) => setServiceSlug(e.target.value)}
                 >
                   {serviceOptions.map((service) => (
-                    <option key={service._id} value={service._id}>
+                    <option key={service.slug} value={service.slug}>
                       {service.title}
                       {service.durationMin ? ` · ${formatDuration(service.durationMin, locale)}` : ""}
                       {service.priceDisplay ? ` · ${service.priceDisplay}` : ""}
