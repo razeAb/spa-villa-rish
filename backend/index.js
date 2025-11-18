@@ -7,6 +7,8 @@ const availability = require("./routes/availability");
 const bookings = require("./routes/booking");
 const auth = require("./routes/auth");
 const services = require("./routes/services");
+const payments = require("./routes/payments");
+const settingsRoute = require("./routes/settings");
 
 const app = express();
 app.use(cors());
@@ -16,6 +18,8 @@ app.use("/api/auth", auth);
 app.use("/api/availability", availability);
 app.use("/api/bookings", bookings);
 app.use("/api/services", services);
+app.use("/api/payments", payments);
+app.use("/api/settings", settingsRoute);
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 

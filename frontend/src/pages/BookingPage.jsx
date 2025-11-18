@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
 import { api } from "../api/client";
 import { useLocale } from "../context/LocaleContext.jsx";
-import { getTreatmentsForLocale, getGroupPackagesForLocale } from "../data/treatments";
+import { getAllServicesForLocale } from "../data/treatments";
 
 const COPY = {
   he: {
@@ -13,6 +13,8 @@ const COPY = {
     contactTitle: "ספרו לנו למי לקבוע",
     nameLabel: "שם מלא",
     phoneLabel: "טלפון",
+    emailLabel: "אימייל",
+    marketingLabel: "רוצים לשמוע על הטבות? סמנו כאן.",
     contactHint: "נשתמש בפרטים רק כדי לאשר את ההזמנה.",
     calendarTitle: "בחרו תאריך ושעה",
     serviceLabel: "בחרו טיפול",
@@ -31,9 +33,10 @@ const COPY = {
     success: "ההזמנה התקבלה! ניצור קשר לאישור סופי.",
     error: "אירעה תקלה, נסו שוב.",
     validations: {
-      contact: "אנא מלאו שם וטלפון.",
+      contact: "אנא מלאו שם, טלפון ואימייל.",
       schedule: "בחרו טיפול, תאריך ושעה פנויה.",
       payment: "מלאו את כל פרטי התשלום.",
+      serviceUnavailable: "כדי להשלים הזמנה יש לבחור טיפול זמין מהמערכת.",
     },
   },
   en: {
@@ -43,6 +46,8 @@ const COPY = {
     contactTitle: "Who should we book for?",
     nameLabel: "Full name",
     phoneLabel: "Phone number",
+    emailLabel: "Email",
+    marketingLabel: "Keep me posted about offers and rituals",
     contactHint: "We only use this info to confirm your booking.",
     calendarTitle: "Choose a date & time",
     serviceLabel: "Select treatment",
@@ -61,9 +66,10 @@ const COPY = {
     success: "Booking received! We’ll confirm shortly.",
     error: "Something went wrong. Please try again.",
     validations: {
-      contact: "Name and phone are required.",
+      contact: "Name, phone, and email are required.",
       schedule: "Pick a treatment, date, and open slot.",
       payment: "Please fill out every payment field.",
+      serviceUnavailable: "Bookings require a live service connection. Try again soon.",
     },
   },
 };
@@ -75,6 +81,21 @@ const sectionMotion = {
 };
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
+
+const formatCurrency = (amount, currency = "ILS", locale = "en") => {
+  try {
+    return new Intl.NumberFormat(locale === "he" ? "he-IL" : "en-US", {
+      style: "currency",
+      currency,
+      currencyDisplay: "symbol",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${currency} ${amount}`;
+  }
+};
+
 const buildDateWindow = (locale) => {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
@@ -97,6 +118,22 @@ const formatDateForDisplay = (iso, locale) => {
   });
 };
 
+const formatServiceOption = (service, locale) => {
+  const translation = service.translations?.[locale] || service.translations?.en || {};
+  return {
+    _id: service._id || service.id || service.slug,
+    title: translation.title || service.title || "",
+    durationMin: service.durationMin,
+    priceDisplay:
+      translation.priceDisplay ||
+      service.priceDisplay ||
+      (service.priceAmount ? formatCurrency(service.priceAmount, service.priceCurrency, locale) : ""),
+    isFallback: Boolean(service.isFallback),
+  };
+};
+
+const isMongoId = (value) => /^[a-f\d]{24}$/i.test(String(value));
+
 export default function BookingPage() {
   const { locale } = useLocale();
   const copy = COPY[locale];
@@ -107,7 +144,7 @@ export default function BookingPage() {
   const initialServiceId = locationServiceId || queryServiceId || "";
 
   const [step, setStep] = useState(1);
-  const [contact, setContact] = useState({ customerName: "", phone: "" });
+  const [contact, setContact] = useState({ customerName: "", phone: "", email: "", marketingOptIn: false });
 
   const [services, setServices] = useState([]);
   const [servicesError, setServicesError] = useState("");
@@ -130,21 +167,7 @@ export default function BookingPage() {
     setServiceId(initialServiceId);
   }, [initialServiceId]);
 
-  const fallbackTreatments = useMemo(() => {
-    const treatments = getTreatmentsForLocale(locale).map((treatment) => ({
-      _id: `demo-${treatment.id}`,
-      title: treatment.title,
-      durationMin: treatment.durationMin,
-      isFallback: true,
-    }));
-    const packages = getGroupPackagesForLocale(locale).map((pkg) => ({
-      _id: `demo-group-${pkg.id}`,
-      title: pkg.title,
-      durationMin: pkg.durationMin,
-      isFallback: true,
-    }));
-    return [...treatments, ...packages];
-  }, [locale]);
+  const fallbackTreatments = useMemo(() => getAllServicesForLocale(locale), [locale]);
 
   useEffect(() => {
     let alive = true;
@@ -178,15 +201,24 @@ export default function BookingPage() {
     setServiceId(fallbackTreatments[0]._id);
   }, [services.length, fallbackTreatments, serviceId]);
 
-  const serviceOptions = useMemo(
-    () => (services.length ? services : fallbackTreatments),
-    [services, fallbackTreatments]
+  const formattedServices = useMemo(
+    () => services.map((svc) => ({ ...formatServiceOption(svc, locale), _raw: svc })),
+    [services, locale]
   );
+  const formattedFallback = useMemo(
+    () => fallbackTreatments.map((svc) => ({ ...formatServiceOption(svc, locale), _raw: svc })),
+    [fallbackTreatments, locale]
+  );
+  const serviceOptions = formattedServices.length ? formattedServices : formattedFallback;
   const selectedService = useMemo(
     () => serviceOptions.find((s) => String(s._id) === String(serviceId)),
     [serviceOptions, serviceId]
   );
-  const serviceIdIsMongoId = /^[a-f\d]{24}$/i.test(String(serviceId));
+  const selectedServiceDoc = useMemo(() => {
+    if (!serviceId || !services.length) return null;
+    return services.find((svc) => String(svc._id) === String(serviceId)) || null;
+  }, [services, serviceId]);
+  const serviceIdIsMongoId = isMongoId(serviceId);
   useEffect(() => {
     if (!serviceId || !date) return;
     if (!serviceIdIsMongoId) {
@@ -234,7 +266,7 @@ export default function BookingPage() {
     setFormError("");
     setSubmitState({ status: "idle", message: "" });
     if (step === 1) {
-      if (!contact.customerName.trim() || !contact.phone.trim()) {
+      if (!contact.customerName.trim() || !contact.phone.trim() || !contact.email.trim()) {
         setFormError(copy.validations.contact);
         return;
       }
@@ -242,6 +274,10 @@ export default function BookingPage() {
     } else if (step === 2) {
       if (!selectedService || !selectedSlot || !date) {
         setFormError(copy.validations.schedule);
+        return;
+      }
+      if (!serviceIdIsMongoId) {
+        setFormError(copy.validations.serviceUnavailable);
         return;
       }
       setStep(3);
@@ -254,14 +290,26 @@ export default function BookingPage() {
       setFormError(copy.validations.payment);
       return;
     }
+    if (!selectedService || !selectedSlot || !serviceIdIsMongoId || !selectedServiceDoc) {
+      setFormError(copy.validations.serviceUnavailable);
+      return;
+    }
     try {
       setSubmitState({ status: "loading", message: "" });
+      const authorization = await api.authorizePayment({
+        serviceId: selectedServiceDoc._id,
+        cardNumber: payment.cardNumber.trim(),
+        expiry: payment.expiry.trim(),
+        cvc: payment.cvc.trim(),
+      });
       await api.createBooking({
-        serviceId: selectedService._id,
+        serviceId: selectedServiceDoc._id,
         customerName: contact.customerName.trim(),
+        customerEmail: contact.email.trim(),
         phone: contact.phone.trim(),
+        marketingOptIn: contact.marketingOptIn,
         startUtc: selectedSlot.startUtc,
-        note: `Payment placeholder • card ending ${payment.cardNumber.slice(-4)}`,
+        paymentId: authorization.paymentId,
       });
       setSubmitState({ status: "success", message: copy.success });
     } catch (err) {
@@ -295,6 +343,29 @@ export default function BookingPage() {
               placeholder="+972 50-000-0000"
             />
           </label>
+          <label className="block text-sm">
+            {copy.emailLabel}
+            <input
+              type="email"
+              value={contact.email}
+              onChange={(e) => setContact((prev) => ({ ...prev, email: e.target.value }))}
+              className="mt-1 w-full rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-white placeholder-white/40"
+              placeholder="you@example.com"
+            />
+          </label>
+          <label
+            className={`flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white/80 ${
+              isHebrew ? "flex-row-reverse text-right" : ""
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={contact.marketingOptIn}
+              onChange={(e) => setContact((prev) => ({ ...prev, marketingOptIn: e.target.checked }))}
+              className="mt-1 h-4 w-4 rounded border-white/40 bg-transparent"
+            />
+            <span>{copy.marketingLabel}</span>
+          </label>
         </div>
       );
     }
@@ -319,6 +390,7 @@ export default function BookingPage() {
                     <option key={service._id} value={service._id}>
                       {service.title}
                       {service.durationMin ? ` · ${formatDuration(service.durationMin, locale)}` : ""}
+                      {service.priceDisplay ? ` · ${service.priceDisplay}` : ""}
                     </option>
                   ))}
                 </select>

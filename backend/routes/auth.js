@@ -1,21 +1,38 @@
 // routes/auth.js
-const express = require('express');
-const jwt = require('jsonwebtoken');
+const express = require("express");
+const jwt = require("jsonwebtoken");
+const AdminUser = require("../models/AdminUser");
+const { verifyPassword } = require("../utils/password");
+
 const router = express.Router();
 
-// לצורך הדמו: משתמש/סיסמה ב-.env או DB
-router.post('/login', (req,res) => {
-  const { username, password } = req.body;
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    console.error('JWT_SECRET is not set');
-    return res.status(500).json({ error: 'Server misconfiguration' });
+router.post("/login", async (req, res) => {
+  try {
+    const { username, password } = req.body || {};
+    if (!username || !password) {
+      return res.status(400).json({ error: "username and password are required" });
+    }
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      console.error("JWT_SECRET is not set");
+      return res.status(500).json({ error: "Server misconfiguration" });
+    }
+
+    const user = await AdminUser.findOne({ username });
+    if (!user || !verifyPassword(password, user.passwordHash)) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    user.lastLoginAt = new Date();
+    await user.save();
+
+    const token = jwt.sign({ role: user.role, sub: user._id }, secret, { expiresIn: "8h" });
+    res.json({ token, user: { username: user.username, role: user.role } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Login failed" });
   }
-  if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
-    const token = jwt.sign({ role:'manager' }, secret, { expiresIn: '8h' });
-    return res.json({ token });
-  }
-  res.status(401).json({ error: 'Invalid credentials' });
 });
 
 module.exports = router;

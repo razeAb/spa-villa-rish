@@ -81,4 +81,7 @@ export const api = {
   createBooking: (payload) => request("/bookings", { method: "POST", body: payload }),
   listBookings: () => request("/bookings", { auth: true }),
   updateBooking: (id, payload) => request(`/bookings/${id}`, { method: "PUT", body: payload, auth: true }),
+  authorizePayment: (payload) => request("/payments/authorize", { method: "POST", body: payload }),
+  getSettings: () => request("/settings"),
+  updateSettings: (payload) => request("/settings", { method: "PUT", body: payload, auth: true }),
 };

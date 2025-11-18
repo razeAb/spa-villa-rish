@@ -4,6 +4,15 @@ const auth = require("../utils/authMiddleware");
 
 const router = express.Router();
 
+const ALLOWED_CATEGORIES = ["massage", "group", "other"];
+
+const slugify = (value = "") =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
 // Public list of active services
 router.get("/", async (_req, res) => {
   try {
@@ -18,26 +27,57 @@ router.get("/", async (_req, res) => {
 // Minimal admin endpoint to add/update services
 router.post("/", auth, async (req, res) => {
   try {
-    const { id, title, durationMin, price, isActive = true } = req.body;
-    if (!title || !durationMin) {
-      return res.status(400).json({ error: "title and durationMin are required" });
+    const {
+      id,
+      title,
+      description = "",
+      typeLabel = "",
+      category = "massage",
+      durationMin,
+      priceAmount,
+      priceCurrency = "ILS",
+      priceDisplay = "",
+      translations = {},
+      isActive = true,
+      slug,
+    } = req.body;
+    const parsedDuration = Number(durationMin);
+    const parsedPrice = Number(priceAmount);
+    if (!title || !Number.isFinite(parsedDuration) || parsedDuration <= 0 || !Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+      return res.status(400).json({ error: "title, durationMin, and priceAmount are required" });
     }
-
-    let doc;
+    const payload = {
+      title,
+      description,
+      typeLabel,
+      durationMin: parsedDuration,
+      category: ALLOWED_CATEGORIES.includes(category) ? category : "other",
+      priceAmount: parsedPrice,
+      priceCurrency,
+      priceDisplay: priceDisplay || `${priceCurrency} ${priceAmount}`,
+      translations: {
+        en: translations.en || undefined,
+        he: translations.he || undefined,
+      },
+      isActive,
+    };
     if (id) {
-      doc = await Service.findByIdAndUpdate(
-        id,
-        { title, durationMin, price, isActive },
-        { new: true, runValidators: true }
-      );
-    } else {
-      doc = await Service.create({ title, durationMin, price, isActive });
+      if (slug) payload.slug = slug;
+      const doc = await Service.findByIdAndUpdate(id, payload, { new: true, runValidators: true });
+      if (!doc) return res.status(404).json({ error: "Service not found" });
+      return res.json(doc);
     }
 
-    res.status(id ? 200 : 201).json(doc);
+    payload.slug = slug || slugify(title);
+    const doc = await Service.create(payload);
+    res.status(201).json(doc);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Server error" });
+    if (err.code === 11000) {
+      res.status(409).json({ error: "Slug already exists" });
+    } else {
+      res.status(500).json({ error: "Server error" });
+    }
   }
 });
 
