@@ -16,6 +16,22 @@ const DEFAULT_OPENING_HOURS = [
   { dow: 6, open: "10:00", close: "15:00" },
 ];
 
+function normalizeOpeningHours(hours = []) {
+  return hours
+    .map((item) => {
+      const dow =
+        typeof item.dow === "string"
+          ? Number.parseInt(item.dow, 10)
+          : typeof item.dow === "number"
+          ? item.dow
+          : null;
+      if (!Number.isInteger(dow)) return null;
+      if (!item.open || !item.close) return null;
+      return { dow, open: item.open, close: item.close };
+    })
+    .filter(Boolean);
+}
+
 // GET /api/availability?serviceId=...&date=2025-11-09
 router.get("/", async (req, res) => {
   try {
@@ -27,9 +43,14 @@ router.get("/", async (req, res) => {
 
     // opening hours
     const dow = DateTime.fromISO(date, { zone: "Asia/Jerusalem" }).weekday % 7; // convert to 0..6 (Sun..Sat)
-    const weeklyOpening = settings?.openingHours?.length ? settings.openingHours : DEFAULT_OPENING_HOURS;
-    const openingSpec = weeklyOpening.find((h) => h.dow === dow);
-    if (!openingSpec) return res.json({ slots: [] });
+    const normalized = normalizeOpeningHours(settings?.openingHours);
+    const weeklyOpening = normalized.length ? normalized : DEFAULT_OPENING_HOURS;
+    const defaultSpec = DEFAULT_OPENING_HOURS.find((h) => h.dow === dow);
+    const openingSpec = weeklyOpening.find((h) => h.dow === dow) || defaultSpec;
+    const reserved = [];
+    if (!openingSpec) {
+      return res.json({ slots: [], reserved });
+    }
 
     // fetch existing bookings for that date (UTC range of the day)
     const dayStartUtc = DateTime.fromISO(date, { zone: "Asia/Jerusalem" }).startOf("day").toUTC();
@@ -51,7 +72,7 @@ router.get("/", async (req, res) => {
       existingBookingsUtc: existing,
     });
 
-    const reserved = existing
+    const reservedSlots = existing
       .map((booking) => {
         const start = DateTime.fromJSDate(booking.startUtc).setZone("Asia/Jerusalem");
         const end = DateTime.fromJSDate(booking.endUtc).setZone("Asia/Jerusalem");
@@ -63,7 +84,7 @@ router.get("/", async (req, res) => {
       })
       .sort((a, b) => new Date(a.startUtc) - new Date(b.startUtc));
 
-    res.json({ slots, reserved });
+    res.json({ slots, reserved: reservedSlots });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Server error" });

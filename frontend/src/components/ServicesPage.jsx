@@ -63,7 +63,7 @@ function Card({ item, isHebrew, priceLabel, ctaLabel }) {
       }`}
       dir={isHebrew ? "rtl" : "ltr"}
     >
-      <div className={`mb-3 flex items-center gap-3 ${isHebrew ? "flex-row-reverse" : "justify-between"}`}>
+      <div className={`mb-3 flex items-center gap-3  ${isHebrew ? "flex-row-reverse" : "justify-between"}`}>
         <h3 className="font-serif text-2xl leading-tight">{item.title}</h3>
         <span
           className={`shrink-0 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] text-white/80 ${
@@ -75,7 +75,7 @@ function Card({ item, isHebrew, priceLabel, ctaLabel }) {
       </div>
       <p className="text-white/85">{item.desc}</p>
 
-      <div className={`mt-5 flex items-center ${isHebrew ? "flex-row-reverse gap-2" : "justify-between"}`}>
+      <div className={`mt-5 flex items-center  ${isHebrew ? "flex-row-reverse gap-2" : "justify-between"}`}>
         <span className="text-sm text-white/80">{priceLabel}</span>
         <span className="text-lg italic">{item.price}</span>
       </div>
