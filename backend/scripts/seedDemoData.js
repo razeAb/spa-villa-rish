@@ -6,9 +6,12 @@ const Settings = require("../models/Settings");
 require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
 const servicesSeed = [
-  { title: "50-Minute Massage", durationMin: 50, price: 450 },
-  { title: "Hammam Ritual · 30 min", durationMin: 30, price: 320 },
-  { title: "Medical Massage", durationMin: 50, price: 480 },
+  { title: "50-Minute Massage", durationMin: 180, price: 450 },
+  { title: "Hammam Massage · 30 min", durationMin: 180, price: 320 },
+  { title: "Medical Massage", durationMin: 180, price: 480 },
+  { title: "Swedish / Thai · 50 min", durationMin: 180, price: 460 },
+  { title: "VIP Couple Package", durationMin: 180, price: 1200 },
+  { title: "Group Day Package", durationMin: 180, price: 300 },
 ];
 
 const openingHoursSeed = [
@@ -35,7 +38,7 @@ async function seedServices() {
   for (const svc of servicesSeed) {
     const doc = await Service.findOneAndUpdate(
       { title: svc.title },
-      { $setOnInsert: svc },
+      { $set: svc },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
     docs.push(doc);

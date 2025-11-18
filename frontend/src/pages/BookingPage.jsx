@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { api } from "../api/client";
 import { useLocale } from "../context/LocaleContext.jsx";
-import { getTreatmentsForLocale } from "../data/treatments";
+import { getTreatmentsForLocale, getGroupPackagesForLocale } from "../data/treatments";
 
 const COPY = {
   he: {
@@ -101,6 +101,10 @@ export default function BookingPage() {
   const { locale } = useLocale();
   const copy = COPY[locale];
   const isHebrew = locale === "he";
+  const location = useLocation();
+  const locationServiceId = location.state?.serviceId;
+  const queryServiceId = useMemo(() => new URLSearchParams(location.search).get("serviceId"), [location.search]);
+  const initialServiceId = locationServiceId || queryServiceId || "";
 
   const [step, setStep] = useState(1);
   const [contact, setContact] = useState({ customerName: "", phone: "" });
@@ -109,7 +113,7 @@ export default function BookingPage() {
   const [servicesError, setServicesError] = useState("");
   const [servicesLoading, setServicesLoading] = useState(true);
 
-  const [serviceId, setServiceId] = useState("");
+  const [serviceId, setServiceId] = useState(initialServiceId);
   const [date, setDate] = useState(todayISO());
   const [slots, setSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -121,16 +125,26 @@ export default function BookingPage() {
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
   const [formError, setFormError] = useState("");
 
-  const fallbackTreatments = useMemo(
-    () =>
-      getTreatmentsForLocale(locale).map((treatment) => ({
-        _id: `demo-${treatment.id}`,
-        title: treatment.title,
-        durationMin: treatment.durationMin,
-        isFallback: true,
-      })),
-    [locale]
-  );
+  useEffect(() => {
+    if (!initialServiceId) return;
+    setServiceId(initialServiceId);
+  }, [initialServiceId]);
+
+  const fallbackTreatments = useMemo(() => {
+    const treatments = getTreatmentsForLocale(locale).map((treatment) => ({
+      _id: `demo-${treatment.id}`,
+      title: treatment.title,
+      durationMin: treatment.durationMin,
+      isFallback: true,
+    }));
+    const packages = getGroupPackagesForLocale(locale).map((pkg) => ({
+      _id: `demo-group-${pkg.id}`,
+      title: pkg.title,
+      durationMin: pkg.durationMin,
+      isFallback: true,
+    }));
+    return [...treatments, ...packages];
+  }, [locale]);
 
   useEffect(() => {
     let alive = true;
@@ -304,6 +318,7 @@ export default function BookingPage() {
                   {serviceOptions.map((service) => (
                     <option key={service._id} value={service._id}>
                       {service.title}
+                      {service.durationMin ? ` · ${formatDuration(service.durationMin, locale)}` : ""}
                     </option>
                   ))}
                 </select>
@@ -530,3 +545,12 @@ export default function BookingPage() {
     </motion.section>
   );
 }
+const formatDuration = (minutes, locale) => {
+  if (!minutes) return "";
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (mins === 0) {
+    return locale === "he" ? `${hours} שעות` : `${hours} hr${hours > 1 ? "s" : ""}`;
+  }
+  return locale === "he" ? `${hours} שעות ${mins} דק׳` : `${hours ? `${hours}h ` : ""}${mins}m`;
+};

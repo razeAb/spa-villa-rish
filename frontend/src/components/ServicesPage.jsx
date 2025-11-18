@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FaChevronRight } from "react-icons/fa";
 import { useLocale } from "../context/LocaleContext.jsx";
-import { getTreatmentsForLocale } from "../data/treatments";
+import { getTreatmentsForLocale, getGroupPackagesForLocale } from "../data/treatments";
 
 const BOOKING_LINK = "/booking";
 const sectionMotion = {
@@ -23,14 +23,6 @@ const CONTENT = {
     groupHeading: "חבילות לקבוצות",
     priceLabel: "מחיר:",
     cta: "שריין מקום",
-    groups: [
-      {
-        title: "יום קבוצתי",
-        type: "קבוצה",
-        price: "₪300 לאדם",
-        desc: "כניסה לקבוצה של עד 6 אנשים ל־3 שעות • גישה חופשית לכל המתחם: חמאם, סאונה, ג'קוזי • אזורי לאונג' מעוצבים • פינת קפה ועוגה • מושלם לימי גיבוש ואירועים.",
-      },
-    ],
   },
   en: {
     eyebrow: "Services & Packages",
@@ -40,18 +32,21 @@ const CONTENT = {
     groupHeading: "Group Packages",
     priceLabel: "Price:",
     cta: "Book Now",
-    groups: [
-      {
-        title: "Group Day",
-        type: "Group",
-        price: "₪300 per person",
-        desc: "Entry for a group of up to 6 people for 3 hours • Free access to the entire complex: Turkish hammam, sauna, jacuzzi • Stylish lounge areas • Coffee & cake corner • Perfect for team days and events.",
-      },
-    ],
   },
 };
 
-function Card({ item, isHebrew, priceLabel, ctaLabel }) {
+const buildBookingLinkProps = (identifier) => {
+  if (!identifier) {
+    return { to: BOOKING_LINK, state: undefined };
+  }
+  const serviceId = String(identifier);
+  return {
+    to: { pathname: BOOKING_LINK, search: `?serviceId=${encodeURIComponent(serviceId)}` },
+    state: { serviceId },
+  };
+};
+
+function Card({ item, isHebrew, priceLabel, ctaLabel, bookingLink, bookingState }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
@@ -63,7 +58,8 @@ function Card({ item, isHebrew, priceLabel, ctaLabel }) {
       }`}
       dir={isHebrew ? "rtl" : "ltr"}
     >
-      <div className={`mb-3 flex items-center gap-3  ${isHebrew ? "flex-row-reverse" : "justify-between"}`}>
+      {/* Title row */}
+      <div className={`mb-3 flex items-center justify-between gap-3 ${isHebrew ? "flex-row-reverse" : ""}`}>
         <h3 className="font-serif text-2xl leading-tight">{item.title}</h3>
         <span
           className={`shrink-0 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] text-white/80 ${
@@ -73,21 +69,26 @@ function Card({ item, isHebrew, priceLabel, ctaLabel }) {
           {item.type}
         </span>
       </div>
+
       <p className="text-white/85">{item.desc}</p>
 
-      <div className={`mt-5 flex items-center  ${isHebrew ? "flex-row-reverse gap-2" : "justify-between"}`}>
+      {/* Price row */}
+      <div className={`mt-5 flex items-center justify-between gap-2 ${isHebrew ? "flex-row-reverse" : ""}`}>
         <span className="text-sm text-white/80">{priceLabel}</span>
         <span className="text-lg italic">{item.price}</span>
       </div>
 
+      {/* CTA */}
       <Link
-        to={BOOKING_LINK}
+        to={bookingLink}
+        state={bookingState}
         className={`mt-6 inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/10 px-4 py-2 text-sm ring-1 ring-white/10 transition hover:bg-white/15 ${
           isHebrew ? "justify-center" : "tracking-widest"
         }`}
+        dir={isHebrew ? "rtl" : "ltr"}
       >
         {ctaLabel}
-        <FaChevronRight className={`text-xs ${isHebrew ? "scale-x-[-1]" : ""}`} />
+        <FaChevronRight className={`text-xs ${isHebrew ? "-scale-x-100" : ""}`} />
       </Link>
     </motion.div>
   );
@@ -98,12 +99,14 @@ export default function ServicesPage() {
   const isHebrew = locale === "he";
   const copy = CONTENT[locale];
   const massages = getTreatmentsForLocale(locale);
+  const groupPackages = getGroupPackagesForLocale(locale);
 
   return (
     <motion.section
       {...sectionMotion}
       data-section="services"
       id="all-services"
+      dir={isHebrew ? "rtl" : "ltr"} // ✅ enforce RTL for Hebrew
       className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-gradient-to-b from-black via-black/95 to-black text-white"
       style={{ scrollMarginTop: "120px" }}
     >
@@ -113,32 +116,47 @@ export default function ServicesPage() {
 
       <div className="relative z-10 mx-auto max-w-6xl px-6 py-20 md:py-28">
         {/* Header */}
-        <div className={`mb-10 text-center ${isHebrew ? "space-y-2" : ""}`} dir={isHebrew ? "rtl" : "ltr"}>
+        <div className={`mb-10 text-center ${isHebrew ? "space-y-2" : ""}`}>
           <p className={`text-xs text-white/70 ${isHebrew ? "tracking-[0.2em]" : "uppercase tracking-[0.35em]"}`}>{copy.eyebrow}</p>
-          <h2 className="mt-3 font-serif text-4xl sm:text-5xl">{copy.title}</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-white/70">{copy.description}</p>
         </div>
 
+        <h2 className="mt-3 text-center font-serif text-4xl sm:text-5xl">{copy.title}</h2>
+        <p className="mx-auto mt-4 max-w-2xl text-center text-white/70">{copy.description}</p>
+
         {/* Massage types */}
-        <div className="mb-10" dir={isHebrew ? "rtl" : "ltr"}>
+        <div className="mb-10 mt-10">
           <h3 className={`mb-4 text-sm text-white/80 ${isHebrew ? "tracking-[0.2em]" : "uppercase tracking-[0.35em]"}`}>
             {copy.massageHeading}
           </h3>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {massages.map((m, i) => (
-              <Card key={i} item={m} isHebrew={isHebrew} priceLabel={copy.priceLabel} ctaLabel={copy.cta} />
+              <Card
+                key={i}
+                item={m}
+                isHebrew={isHebrew}
+                priceLabel={copy.priceLabel}
+                ctaLabel={copy.cta}
+                {...buildBookingLinkProps(m._id || m.id)}
+              />
             ))}
           </div>
         </div>
 
         {/* Group packages */}
-        <div className="mt-14" dir={isHebrew ? "rtl" : "ltr"}>
+        <div className="mt-14">
           <h3 className={`mb-4 text-sm text-white/80 ${isHebrew ? "tracking-[0.2em]" : "uppercase tracking-[0.35em]"}`}>
             {copy.groupHeading}
           </h3>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {copy.groups.map((g, i) => (
-              <Card key={i} item={g} isHebrew={isHebrew} priceLabel={copy.priceLabel} ctaLabel={copy.cta} />
+            {groupPackages.map((g, i) => (
+              <Card
+                key={i}
+                item={g}
+                isHebrew={isHebrew}
+                priceLabel={copy.priceLabel}
+                ctaLabel={copy.cta}
+                {...buildBookingLinkProps(g._id || g.id)}
+              />
             ))}
           </div>
         </div>
