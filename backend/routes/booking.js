@@ -6,6 +6,31 @@ const Payment = require('../models/Payment');
 const auth = require('../utils/authMiddleware'); // מאמת JWT לממשקים של מנהל
 const router = express.Router();
 
+const buildSlotWindow = async (serviceId, startIso) => {
+  const service = await Service.findById(serviceId);
+  if (!service) return { error: 'Service not found', status: 404 };
+  const start = DateTime.fromISO(startIso, { zone: 'utc' });
+  if (!start.isValid) return { error: 'Invalid start datetime' };
+  const end = start.plus({ minutes: service.durationMin });
+  return {
+    start: start.toJSDate(),
+    end: end.toJSDate(),
+    service,
+  };
+};
+
+const hasClash = (serviceId, startUtc, endUtc, excludeId = null) => {
+  const filter = {
+    serviceId,
+    startUtc: { $lt: endUtc },
+    endUtc: { $gt: startUtc },
+  };
+  if (excludeId) {
+    filter._id = { $ne: excludeId };
+  }
+  return Booking.findOne(filter);
+};
+
 // יצירת הזמנה (לקוח)
 router.post('/', async (req,res) => {
   try {
@@ -71,6 +96,45 @@ router.post('/', async (req,res) => {
   }
 });
 
+// יצירת תור ידני (מנהל)
+router.post('/admin', auth, async (req,res) => {
+  try {
+    const { serviceId, customerName, phone, customerEmail, marketingOptIn, startUtc, note, status } = req.body || {};
+    if (!serviceId || !customerName || !phone || !customerEmail || !startUtc) {
+      return res.status(400).json({ error: 'Missing fields' });
+    }
+
+    const slotWindow = await buildSlotWindow(serviceId, startUtc);
+    if (slotWindow.error) return res.status(slotWindow.status || 400).json({ error: slotWindow.error });
+
+    const clash = await hasClash(serviceId, slotWindow.start, slotWindow.end);
+    if (clash) return res.status(409).json({ error: 'Slot already booked' });
+
+    const payload = {
+      serviceId,
+      customerName,
+      phone,
+      customerEmail,
+      marketingOptIn: Boolean(marketingOptIn),
+      startUtc: slotWindow.start,
+      endUtc: slotWindow.end,
+      status: status || 'confirmed',
+      paymentStatus: 'none',
+      totalAmount: 0,
+      currency: slotWindow.service.priceCurrency || 'ILS',
+    };
+    if (typeof note === 'string' && note.trim()) {
+      payload.note = note.trim();
+    }
+
+    const created = await Booking.create(payload);
+    res.status(201).json(created);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // שאילת הזמנות (מנהל)
 router.get('/', auth, async (req,res) => {
   try {
@@ -116,21 +180,13 @@ router.put('/:id', auth, async (req,res) => {
     if (typeof note === 'string') update.note = note;
 
     if (startUtc) {
-      const service = await Service.findById(booking.serviceId);
-      if (!service) return res.status(404).json({ error: 'Service not found' });
-      const start = DateTime.fromISO(startUtc, { zone: 'utc' });
-      if (!start.isValid) return res.status(400).json({ error: 'Invalid start datetime' });
-      const end = start.plus({ minutes: service.durationMin });
-      const clash = await Booking.findOne({
-        _id: { $ne: id },
-        serviceId: booking.serviceId,
-        startUtc: { $lt: end.toJSDate() },
-        endUtc:   { $gt: start.toJSDate() }
-      });
+      const slotWindow = await buildSlotWindow(booking.serviceId, startUtc);
+      if (slotWindow.error) return res.status(slotWindow.status || 400).json({ error: slotWindow.error });
+      const clash = await hasClash(booking.serviceId, slotWindow.start, slotWindow.end, id);
       if (clash) return res.status(409).json({ error: 'New time conflicts with another booking' });
 
-      update.startUtc = start.toJSDate();
-      update.endUtc   = end.toJSDate();
+      update.startUtc = slotWindow.start;
+      update.endUtc   = slotWindow.end;
     }
     if (!Object.keys(update).length) return res.status(400).json({ error: 'No changes provided' });
 
@@ -142,6 +198,24 @@ router.put('/:id', auth, async (req,res) => {
     }
 
     res.json(saved);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// מחיקת הזמנה (מנהל)
+router.delete('/:id', auth, async (req,res) => {
+  try {
+    const { id } = req.params;
+    const booking = await Booking.findById(id);
+    if (!booking) return res.status(404).json({ error: 'Not found' });
+
+    if (booking.paymentId) {
+      await Payment.findByIdAndUpdate(booking.paymentId, { status: 'refunded' });
+    }
+    await Booking.findByIdAndDelete(id);
+    res.json({ ok: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });

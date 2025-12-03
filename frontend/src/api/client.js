@@ -79,8 +79,23 @@ export const api = {
     return request(`/availability?${params.toString()}`);
   },
   createBooking: (payload) => request("/bookings", { method: "POST", body: payload }),
-  listBookings: () => request("/bookings", { auth: true }),
+  listBookings: (params) => {
+    const search = params
+      ? new URLSearchParams(
+          Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== "")
+        ).toString()
+      : "";
+    const suffix = search ? `?${search}` : "";
+    return request(`/bookings${suffix}`, { auth: true });
+  },
+  createAdminBooking: (payload) =>
+    request("/bookings/admin", {
+      method: "POST",
+      body: payload,
+      auth: true,
+    }),
   updateBooking: (id, payload) => request(`/bookings/${id}`, { method: "PUT", body: payload, auth: true }),
+  deleteBooking: (id) => request(`/bookings/${id}`, { method: "DELETE", auth: true }),
   authorizePayment: (payload) => request("/payments/authorize", { method: "POST", body: payload }),
   getSettings: () => request("/settings"),
   updateSettings: (payload) => request("/settings", { method: "PUT", body: payload, auth: true }),

@@ -166,9 +166,14 @@ export default function AdminConsole() {
       <header className="border-b border-white/10 bg-black/70 px-6 py-4 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <h1 className="text-xl font-semibold">Spa Villa Rish · Admin</h1>
-          <Link to="/" className="text-sm text-white/70 hover:text-white">
-            ← Back to site
-          </Link>
+          <div className="flex items-center gap-4 text-sm text-white/70">
+            <Link to="/admin/calendar" className="hover:text-white">
+              Calendar view
+            </Link>
+            <Link to="/" className="hover:text-white">
+              ← Back to site
+            </Link>
+          </div>
         </div>
       </header>
 
