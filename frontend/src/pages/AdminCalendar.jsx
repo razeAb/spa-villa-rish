@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Calendar, LogOut, RefreshCcw, Wrench } from "lucide-react";
 import { api, getAuthToken, setAuthToken } from "../api/client";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/dist/style.css";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -65,6 +67,7 @@ export default function AdminCalendar() {
     return now;
   });
   const [selectedDateIso, setSelectedDateIso] = useState(toDateIso(new Date()));
+  const [showCalendar, setShowCalendar] = useState(false);
 
   const [bookings, setBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
@@ -291,10 +294,7 @@ export default function AdminCalendar() {
                   onChange={(event) => setCreds((prev) => ({ ...prev, password: event.target.value }))}
                 />
               </label>
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-white/90 px-4 py-2 text-black transition hover:bg-white"
-              >
+              <button type="submit" className="w-full rounded-lg bg-white/90 px-4 py-2 text-black transition hover:bg-white">
                 Sign in
               </button>
               {loginError ? <p className="text-sm text-red-400">{loginError}</p> : null}
@@ -304,19 +304,13 @@ export default function AdminCalendar() {
           <div className="space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm text-white/70">
-                <button
-                  className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10"
-                  onClick={() => handleMonthShift(-1)}
-                >
+                <button className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10" onClick={() => handleMonthShift(-1)}>
                   ← Prev
                 </button>
                 <div className="rounded-lg border border-white/15 px-3 py-1 font-semibold text-white">
                   {monthCursor.toLocaleString("en", { month: "long", year: "numeric" })}
                 </div>
-                <button
-                  className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10"
-                  onClick={() => handleMonthShift(1)}
-                >
+                <button className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10" onClick={() => handleMonthShift(1)}>
                   Next →
                 </button>
               </div>
@@ -369,9 +363,7 @@ export default function AdminCalendar() {
                             <span className="font-semibold text-white">{day.label}</span>
                             {day.isToday ? <span className="rounded-md bg-white/15 px-2 py-0.5 text-[10px]">Today</span> : null}
                           </div>
-                          <div className="text-[11px] text-white/70">
-                            {count ? `${count} appointment${count > 1 ? "s" : ""}` : "Empty"}
-                          </div>
+                          <div className="text-[11px] text-white/70">{count ? `${count} appointment${count > 1 ? "s" : ""}` : "Empty"}</div>
                         </button>
                       );
                     })}
@@ -398,10 +390,7 @@ export default function AdminCalendar() {
 
                   <div className="mt-4 space-y-3">
                     {dayBookings.map((booking) => (
-                      <div
-                        key={booking._id}
-                        className="rounded-xl border border-white/10 bg-black/40 p-4 shadow-inner shadow-black/30"
-                      >
+                      <div key={booking._id} className="rounded-xl border border-white/10 bg-black/40 p-4 shadow-inner shadow-black/30">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div>
                             <p className="text-sm font-semibold text-white">
@@ -410,9 +399,7 @@ export default function AdminCalendar() {
                             <p className="text-xs text-white/60">
                               {formatTime(booking.startUtc)} – {formatTime(booking.endUtc)} · {booking.phone}
                             </p>
-                            {booking.customerEmail ? (
-                              <p className="text-xs text-white/60">{booking.customerEmail}</p>
-                            ) : null}
+                            {booking.customerEmail ? <p className="text-xs text-white/60">{booking.customerEmail}</p> : null}
                             <p className="mt-1 text-[11px] uppercase tracking-wide text-white/50">
                               Status: {booking.status} · Payment: {booking.paymentStatus}
                             </p>
@@ -431,9 +418,7 @@ export default function AdminCalendar() {
                           Comment
                           <textarea
                             value={noteDrafts[booking._id] ?? ""}
-                            onChange={(event) =>
-                              setNoteDrafts((prev) => ({ ...prev, [booking._id]: event.target.value }))
-                            }
+                            onChange={(event) => setNoteDrafts((prev) => ({ ...prev, [booking._id]: event.target.value }))}
                             className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 p-2 text-sm text-white"
                             rows={2}
                           />
@@ -487,13 +472,36 @@ export default function AdminCalendar() {
                     <div className="grid grid-cols-2 gap-2">
                       <label className="block text-sm text-white/80">
                         Date
-                        <input
-                          type="date"
-                          value={newBooking.date}
-                          onChange={(event) => setNewBooking((prev) => ({ ...prev, date: event.target.value }))}
-                          className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
-                        />
+                        <div className="relative">
+                          <input
+                            readOnly
+                            value={newBooking.date}
+                            onClick={() => setShowCalendar(!showCalendar)}
+                            className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white cursor-pointer"
+                          />
+
+                          {showCalendar && (
+                            <div className="absolute z-50 mt-2 rounded-xl bg-black border border-white/10 shadow-xl p-3">
+                              <DayPicker
+                                mode="single"
+                                selected={new Date(newBooking.date)}
+                                onSelect={(date) => {
+                                  if (!date) return;
+                                  const iso = date.toISOString().slice(0, 10);
+                                  setNewBooking((prev) => ({ ...prev, date: iso }));
+                                  setShowCalendar(false);
+                                }}
+                                modifiersClassNames={{
+                                  selected: "bg-white text-black font-bold",
+                                  today: "border border-white/40",
+                                }}
+                                className="text-white"
+                              />
+                            </div>
+                          )}
+                        </div>
                       </label>
+
                       <label className="block text-sm text-white/80">
                         Time
                         <input
@@ -545,11 +553,7 @@ export default function AdminCalendar() {
                       />
                     </label>
                     {createState.message ? (
-                      <p
-                        className={`text-sm ${
-                          createState.status === "error" ? "text-red-400" : "text-emerald-300"
-                        }`}
-                      >
+                      <p className={`text-sm ${createState.status === "error" ? "text-red-400" : "text-emerald-300"}`}>
                         {createState.message}
                       </p>
                     ) : null}
