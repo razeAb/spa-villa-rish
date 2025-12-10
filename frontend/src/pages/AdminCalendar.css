@@ -1,0 +1,75 @@
+/* DayPicker custom styling */
+.admin-calendar-picker .rdp {
+  --rdp-cell-size: 40px;
+  --rdp-accent-color: #fff;
+  --rdp-background-color: rgba(255, 255, 255, 0.1);
+  font-size: 0.875rem;
+}
+
+.admin-calendar-picker .rdp-head_cell {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+.admin-calendar-picker .rdp-cell {
+  padding: 0;
+}
+
+.admin-calendar-picker .rdp-day {
+  border-radius: 8px;
+  color: white;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.admin-calendar-picker .rdp-day:hover:not(.rdp-day_disabled) {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.admin-calendar-picker .rdp-day_selected {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+  color: #000;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+.admin-calendar-picker .rdp-day_today {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.admin-calendar-picker .rdp-day_outside {
+  opacity: 0.3;
+}
+
+.admin-calendar-picker .rdp-day_disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.admin-calendar-picker .rdp-caption {
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.admin-calendar-picker .rdp-nav_button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.admin-calendar-picker .rdp-nav_button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}

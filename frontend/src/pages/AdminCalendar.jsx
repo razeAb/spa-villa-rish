@@ -4,6 +4,7 @@ import { Calendar, LogOut, RefreshCcw, Wrench } from "lucide-react";
 import { api, getAuthToken, setAuthToken } from "../api/client";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
+import "./AdminCalendar.css";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -481,7 +482,7 @@ export default function AdminCalendar() {
                           />
 
                           {showCalendar && (
-                            <div className="absolute z-50 mt-2 rounded-xl bg-black border border-white/10 shadow-xl p-3">
+                            <div className="absolute z-50 mt-2 rounded-xl bg-gradient-to-br from-black to-black/80 border border-white/20 shadow-2xl shadow-black/50 p-4 backdrop-blur-sm admin-calendar-picker">
                               <DayPicker
                                 mode="single"
                                 selected={new Date(newBooking.date)}
@@ -491,11 +492,6 @@ export default function AdminCalendar() {
                                   setNewBooking((prev) => ({ ...prev, date: iso }));
                                   setShowCalendar(false);
                                 }}
-                                modifiersClassNames={{
-                                  selected: "bg-white text-black font-bold",
-                                  today: "border border-white/40",
-                                }}
-                                className="text-white"
                               />
                             </div>
                           )}
