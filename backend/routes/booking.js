@@ -4,7 +4,7 @@ const Booking = require('../models/Booking');
 const Service = require('../models/Service');
 const Payment = require('../models/Payment');
 const auth = require('../utils/authMiddleware'); // מאמת JWT לממשקים של מנהל
-const sendBookingConfirmationEmail = require('../utils/mailer');
+const { sendBookingConfirmation, sendAdminNotification } = require('../utils/mailer');
 const router = express.Router();
 
 const buildSlotWindow = async (serviceId, startIso) => {
@@ -90,16 +90,16 @@ router.post('/', async (req,res) => {
     payment.bookingId = created._id;
     await payment.save();
 
+    const serviceTitle = service.translations?.he?.title || service.title;
+    // fire-and-forget to keep response fast
+    sendBookingConfirmation(created, serviceTitle, "he").catch(console.error);
+    sendAdminNotification(created, serviceTitle).catch(console.error);
+
     res.status(201).json(created);
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Server error' });
   }
-  const serviceTitle = slotWindow.service.translations?.he?.title || slotWindow.service.title;
-// fire-and-forget to keep response fast
-sendBookingConfirmation(created, serviceTitle, "he").catch(console.error);
-sendAdminNotification(created, serviceTitle).catch(console.error);
-
 });
 
 
@@ -108,7 +108,7 @@ sendAdminNotification(created, serviceTitle).catch(console.error);
 router.post('/admin', auth, async (req,res) => {
   try {
     const { serviceId, customerName, phone, customerEmail, marketingOptIn, startUtc, note, status } = req.body || {};
-    if (!serviceId || !customerName || !phone || !customerEmail || !startUtc) {
+    if (!serviceId || !customerName || !phone || !startUtc) {
       return res.status(400).json({ error: 'Missing fields' });
     }
 
@@ -122,7 +122,7 @@ router.post('/admin', auth, async (req,res) => {
       serviceId,
       customerName,
       phone,
-      customerEmail,
+      customerEmail: customerEmail || undefined,
       marketingOptIn: Boolean(marketingOptIn),
       startUtc: slotWindow.start,
       endUtc: slotWindow.end,
@@ -136,16 +136,16 @@ router.post('/admin', auth, async (req,res) => {
     }
 
     const created = await Booking.create(payload);
+    const serviceTitle = slotWindow.service.translations?.he?.title || slotWindow.service.title;
+    if (customerEmail) {
+      sendBookingConfirmation(created, serviceTitle, "he").catch(console.error);
+    }
+    sendAdminNotification(created, serviceTitle).catch(console.error);
     res.status(201).json(created);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
   }
-
-  const serviceTitle = slotWindow.service.translations?.he?.title || slotWindow.service.title;
-sendBookingConfirmation(created, serviceTitle, "he").catch(console.error);
-sendAdminNotification(created, serviceTitle).catch(console.error);
-
 });
 
 

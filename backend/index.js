@@ -10,11 +10,17 @@ const services = require("./routes/services");
 const payments = require("./routes/payments");
 const settingsRoute = require("./routes/settings");
 const { ensureCatalogServices } = require("./utils/catalog");
+const { generalLimiter, loginLimiter } = require("./middleware/rateLimit");
+const requestLogger = require("./middleware/logger");
 
 const app = express();
+app.set("trust proxy", true);
 app.use(cors());
 app.use(express.json());
+app.use(requestLogger);
+app.use(generalLimiter);
 
+app.use("/api/auth/login", loginLimiter);
 app.use("/api/auth", auth);
 app.use("/api/availability", availability);
 app.use("/api/bookings", bookings);

@@ -336,10 +336,10 @@ export default function AdminCalendar() {
       return;
     }
 
-    if (!newBooking.serviceId || !newBooking.customerName || !newBooking.phone || !newBooking.customerEmail) {
+    if (!newBooking.serviceId || !newBooking.customerName || !newBooking.phone) {
       setCreateState({
         status: "error",
-        message: lang === "he" ? "כל השדות חובה" : "All fields are required",
+        message: lang === "he" ? "שם וטלפון חובה" : "Name and phone are required",
       });
       return;
     }
@@ -351,7 +351,7 @@ export default function AdminCalendar() {
         serviceId: newBooking.serviceId,
         customerName: newBooking.customerName,
         phone: newBooking.phone,
-        customerEmail: newBooking.customerEmail,
+        customerEmail: newBooking.customerEmail || undefined,
         startUtc,
         note: newBooking.note,
       });

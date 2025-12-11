@@ -5,7 +5,13 @@ const BookingSchema = new mongoose.Schema(
     serviceId: { type: mongoose.Schema.Types.ObjectId, ref: "Service", required: true },
     customerName: { type: String, required: true },
     phone: { type: String, required: true },
-    customerEmail: { type: String, required: true },
+    customerEmail: {
+      type: String,
+      required: function requiredEmail() {
+        // Require email for paid bookings; allow optional for admin/manual ("none")
+        return this.paymentStatus !== "none";
+      },
+    },
     marketingOptIn: { type: Boolean, default: false },
     startUtc: { type: Date, required: true }, // תאריך-שעה ב-UTC
     endUtc: { type: Date, required: true },

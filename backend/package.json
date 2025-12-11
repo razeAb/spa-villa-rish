@@ -7,7 +7,8 @@
     "dev": "nodemon index.js",
     "start": "node index.js",
     "seed": "node scripts/seedDemoData.js",
-    "test": "node --test"
+    "test": "node --test",
+    "backup": "node scripts/backupMongo.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -15,7 +16,9 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "luxon": "^3.5.0",
-    "mongoose": "^8.8.1"
+    "mongoose": "^8.8.1",
+    "nodemailer": "^6.9.15",
+    "express-rate-limit": "^7.4.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
