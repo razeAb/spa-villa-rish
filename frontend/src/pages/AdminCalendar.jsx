@@ -6,6 +6,10 @@ import "./AdminCalendar.css";
 
 const toDateIso = (date) => date.toISOString().slice(0, 10);
 const formatTime = (iso) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+const getServiceTitle = (svc, lang) => {
+  if (!svc) return "";
+  return svc.translations?.[lang]?.title || svc.title || svc.translations?.en?.title || "";
+};
 
 const buildCalendarDays = (monthCursor, selectedIso) => {
   const start = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1);
@@ -186,6 +190,16 @@ export default function AdminCalendar() {
     status: "idle",
     message: "",
   });
+
+  const servicesById = useMemo(() => {
+    const map = {};
+    services.forEach((svc) => {
+      if (svc._id) {
+        map[String(svc._id)] = svc;
+      }
+    });
+    return map;
+  }, [services]);
 
   /* ----------------------------- FETCH SERVICES ----------------------------- */
   useEffect(() => {
@@ -532,7 +546,7 @@ export default function AdminCalendar() {
                         <div className="flex justify-between">
                           <div>
                             <p className="text-sm font-semibold">
-                              {b.customerName} • {b.serviceId?.title || T[lang].service}
+                              {b.customerName} • {getServiceTitle(servicesById[String(b.serviceId?._id)] || b.serviceId, lang) || T[lang].service}
                             </p>
 
                             <p className="text-xs text-white/60">
@@ -615,7 +629,7 @@ export default function AdminCalendar() {
                       >
                         {services.map((svc) => (
                           <option key={svc._id} value={svc._id}>
-                            {svc.title}
+                            {getServiceTitle(svc, lang)}
                           </option>
                         ))}
                       </select>
