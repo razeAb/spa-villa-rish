@@ -1,24 +1,29 @@
-// backend/utils/mailer.js
-const nodemailer = require("nodemailer");
+const formatBooking = (booking, serviceTitle, lang = "he") => {
+  if (lang === "he") {
+    return `שלום ${booking.customerName}
+  
+  ההזמנה שלך לשירות "${serviceTitle}" התקבלה בהצלחה
+  תודה שבחרת בנו
+  
+  פרטי הזמנה
+  1 שם לקוח: ${booking.customerName}
+  2 תאריך: ${booking.date}
+  3 שעה: ${booking.time}
+  
+  מדיניות ביטולים
+  ניתן לבטל הזמנה רק עד 3 ימים מראש`;
+  }
 
-const { MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASS, MAIL_FROM, MAIL_ADMIN } = process.env;
-const enabled = MAIL_HOST && MAIL_USER && MAIL_PASS;
-
-const transporter = enabled
-  ? nodemailer.createTransport({
-      host: MAIL_HOST,
-      port: Number(MAIL_PORT) || 587,
-      secure: Number(MAIL_PORT) === 465,
-      auth: { user: MAIL_USER, pass: MAIL_PASS },
-    })
-  : null;
-
-const send = async (opts) => {
-  if (!enabled) return false;
-  await transporter.sendMail({ from: MAIL_FROM || MAIL_USER, ...opts });
-  return true;
+  return `Hello ${booking.customerName}
+  
+  Your booking for "${serviceTitle}" has been received successfully
+  Thank you for choosing us
+  
+  Booking Details
+  1 Customer Name: ${booking.customerName}
+  2 Date: ${booking.date}
+  3 Time: ${booking.time}
+  
+  Cancellation Policy
+  You can cancel your reservation only up to 3 days in advance`;
 };
-
-const formatBooking = (booking, serviceTitle, lang = "he") =>
-  lang === "he"
-    ? `שלום ${booking.customerName},
