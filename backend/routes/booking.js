@@ -4,6 +4,7 @@ const Booking = require('../models/Booking');
 const Service = require('../models/Service');
 const Payment = require('../models/Payment');
 const auth = require('../utils/authMiddleware'); // מאמת JWT לממשקים של מנהל
+const sendBookingConfirmationEmail = require('../utils/mailer');
 const router = express.Router();
 
 const buildSlotWindow = async (serviceId, startIso) => {
@@ -94,7 +95,14 @@ router.post('/', async (req,res) => {
     console.error(e);
     res.status(500).json({ error: 'Server error' });
   }
+  const serviceTitle = slotWindow.service.translations?.he?.title || slotWindow.service.title;
+// fire-and-forget to keep response fast
+sendBookingConfirmation(created, serviceTitle, "he").catch(console.error);
+sendAdminNotification(created, serviceTitle).catch(console.error);
+
 });
+
+
 
 // יצירת תור ידני (מנהל)
 router.post('/admin', auth, async (req,res) => {
@@ -133,7 +141,13 @@ router.post('/admin', auth, async (req,res) => {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
   }
+
+  const serviceTitle = slotWindow.service.translations?.he?.title || slotWindow.service.title;
+sendBookingConfirmation(created, serviceTitle, "he").catch(console.error);
+sendAdminNotification(created, serviceTitle).catch(console.error);
+
 });
+
 
 // שאילת הזמנות (מנהל)
 router.get('/', auth, async (req,res) => {
