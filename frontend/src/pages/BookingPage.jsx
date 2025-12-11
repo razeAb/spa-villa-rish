@@ -139,6 +139,8 @@ export default function BookingPage() {
   const queryServiceId = queryParams.get("serviceId");
   const initialServiceSlug = locationServiceSlug || queryServiceSlug || "";
   const legacyServiceId = locationServiceId || queryServiceId || "";
+  const lockService = Boolean(initialServiceSlug || legacyServiceId); // only lock when a service was preselected
+  const [preselectError, setPreselectError] = useState(false);
 
   const [step, setStep] = useState(1);
   const [contact, setContact] = useState({ customerName: "", phone: "", email: "", marketingOptIn: false });
@@ -253,10 +255,7 @@ export default function BookingPage() {
     [catalogServices, locale]
   );
 
-  const selectedCatalogService = useMemo(
-    () => serviceOptions.find((svc) => svc.slug === serviceSlug) || null,
-    [serviceOptions, serviceSlug]
-  );
+  const selectedCatalogService = useMemo(() => serviceOptions.find((svc) => svc.slug === serviceSlug) || null, [serviceOptions, serviceSlug]);
 
   const selectedServiceDoc = serviceSlug ? servicesBySlug[serviceSlug] : null;
   const serviceIdForApi = selectedServiceDoc?._id;
@@ -264,20 +263,38 @@ export default function BookingPage() {
 
   useEffect(() => {
     if (serviceSlug) return;
+    if (serviceSlug) return;
+    if (initialServiceSlug) {
+      setServiceSlug(initialServiceSlug);
+      return;
+    }
     if (legacyServiceId) {
       const legacyDoc = servicesById[legacyServiceId];
-      if (legacyDoc) {
-        const resolvedSlug = legacyDoc.slug || slugByTitle[normalizeTitle(legacyDoc.title)];
-        if (resolvedSlug) {
-          setServiceSlug(resolvedSlug);
-          return;
-        }
+      const resolvedSlug = legacyDoc?.slug || slugByTitle[normalizeTitle(legacyDoc?.title)] || legacyServiceId;
+      if (resolvedSlug) {
+        setServiceSlug(resolvedSlug);
+        return;
       }
     }
     if (serviceOptions.length) {
       setServiceSlug(serviceOptions[0].slug);
     }
-  }, [serviceSlug, legacyServiceId, servicesById, slugByTitle, serviceOptions]);
+  }, [serviceSlug, legacyServiceId, servicesById, slugByTitle, serviceOptions, initialServiceSlug]);
+
+  useEffect(() => {
+    if (!lockService || servicesLoading) return;
+    setPreselectError(false);
+    if (!serviceSlug) return;
+    if (!servicesBySlug[serviceSlug] && selectedCatalogService) {
+      const normalized = normalizeTitle(selectedCatalogService.title);
+      const fallbackSlug = slugByTitle[normalized];
+      if (fallbackSlug && servicesBySlug[fallbackSlug]) {
+        setServiceSlug(fallbackSlug);
+        return;
+      }
+      setPreselectError(true);
+    }
+  }, [lockService, servicesLoading, serviceSlug, servicesBySlug, selectedCatalogService, slugByTitle]);
 
   useEffect(() => {
     if (!serviceSlug) return;
@@ -340,7 +357,7 @@ export default function BookingPage() {
       }
       setStep(2);
     } else if (step === 2) {
-      if (!selectedCatalogService || !selectedSlot || !date) {
+      if (preselectError || !selectedCatalogService || !selectedSlot || !date) {
         setFormError(copy.validations.schedule);
         return;
       }
@@ -447,22 +464,39 @@ export default function BookingPage() {
           ) : (
             <>
               {servicesError ? <p className="text-sm text-red-400">{servicesError}</p> : null}
-              <label className="block text-sm">
-                {copy.serviceLabel}
-                <select
-                  className="mt-1 w-full rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-white"
-                  value={serviceSlug}
-                  onChange={(e) => setServiceSlug(e.target.value)}
-                >
-                  {serviceOptions.map((service) => (
-                    <option key={service.slug} value={service.slug}>
-                      {service.title}
-                      {service.durationMin ? ` · ${formatDuration(service.durationMin, locale)}` : ""}
-                      {service.priceDisplay ? ` · ${service.priceDisplay}` : ""}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {lockService ? (
+                <div className="rounded-xl border border-white/15 bg-white/5 p-3 text-sm">
+                  <p className="text-white/60">{copy.serviceLabel}</p>
+                  {preselectError ? (
+                    <p className="text-red-300">
+                      {locale === "he" ? "הטיפול שנבחר אינו זמין כרגע." : "The selected treatment is not available right now."}
+                    </p>
+                  ) : (
+                    <p className="text-lg font-semibold text-white">
+                      {selectedCatalogService?.title || initialServiceSlug || ""}
+                      {selectedCatalogService?.durationMin ? ` · ${formatDuration(selectedCatalogService.durationMin, locale)}` : ""}
+                      {selectedCatalogService?.priceDisplay ? ` · ${selectedCatalogService.priceDisplay}` : ""}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <label className="block text-sm">
+                  {copy.serviceLabel}
+                  <select
+                    className="mt-1 w-full rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-white"
+                    value={serviceSlug}
+                    onChange={(e) => setServiceSlug(e.target.value)}
+                  >
+                    {serviceOptions.map((service) => (
+                      <option key={service.slug} value={service.slug}>
+                        {service.title}
+                        {service.durationMin ? ` · ${formatDuration(service.durationMin, locale)}` : ""}
+                        {service.priceDisplay ? ` · ${service.priceDisplay}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
 
               <div>
                 <p className="text-sm">{copy.dateLabel}</p>

@@ -7,6 +7,7 @@ import VipPackagePage from "./pages/VipPackagePage.jsx";
 import BookingPage from "./pages/BookingPage.jsx";
 import AdminConsole from "./pages/AdminConsole.jsx";
 import AdminCalendar from "./pages/AdminCalendar.jsx";
+import AdminServices from "./pages/AdminServices.jsx";
 import "./index.css";
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
         </Route>
         <Route path="/admin" element={<AdminConsole />} />
         <Route path="/admin/calendar" element={<AdminCalendar />} />
+        <Route path="/admin/services" element={<AdminServices />} />
       </Routes>
     </AnimatePresence>
   );

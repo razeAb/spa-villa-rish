@@ -74,6 +74,7 @@ const request = async (path, { method = "GET", body, auth = false } = {}) => {
 export const api = {
   login: (username, password) => request("/auth/login", { method: "POST", body: { username, password } }),
   listServices: () => request("/services"),
+  upsertService: (payload) => request("/services", { method: "POST", body: payload, auth: true }),
   getAvailability: (serviceId, date) => {
     const params = new URLSearchParams({ serviceId, date });
     return request(`/availability?${params.toString()}`);

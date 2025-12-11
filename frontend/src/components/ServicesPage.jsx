@@ -38,13 +38,18 @@ const CONTENT = {
 
 const buildBookingLinkProps = (service) => {
   const slug = service?.slug || service?.serviceId || service?._id || service?.id;
-  if (!slug) {
+  const id = service?._id || service?.serviceId || service?.id || slug;
+  if (!slug && !id) {
     return { to: BOOKING_LINK, state: undefined };
   }
-  const slugString = String(slug);
+  const slugString = slug ? String(slug) : "";
+  const idString = id ? String(id) : "";
+  const params = new URLSearchParams();
+  if (slugString) params.set("serviceSlug", slugString);
+  if (idString) params.set("serviceId", idString);
   return {
-    to: { pathname: BOOKING_LINK, search: `?serviceSlug=${encodeURIComponent(slugString)}` },
-    state: { serviceSlug: slugString },
+    to: { pathname: BOOKING_LINK, search: params.toString() ? `?${params.toString()}` : "" },
+    state: { serviceSlug: slugString || undefined, serviceId: idString || undefined },
   };
 };
 

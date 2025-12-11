@@ -387,10 +387,17 @@ export default function AdminCalendar() {
             </div>
           </div>
 
-          {/* LANGUAGE SWITCH */}
-          <button onClick={toggleLang} className="rounded-lg border border-white/20 px-3 py-1 text-sm text-white/80 hover:bg-white/10">
-            {T[lang].langButton}
-          </button>
+          <div className="flex items-center gap-3 text-sm text-white/80">
+            <Link to="/admin/services" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
+              {lang === "he" ? "ניהול חבילות" : "Manage services"}
+            </Link>
+            <Link to="/admin" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
+              {lang === "he" ? "קונסולת אדמין" : "Admin console"}
+            </Link>
+            <button onClick={toggleLang} className="rounded-lg border border-white/20 px-3 py-1 text-sm text-white/80 hover:bg-white/10">
+              {T[lang].langButton}
+            </button>
+          </div>
         </div>
       </header>
 
