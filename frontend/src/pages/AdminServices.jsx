@@ -14,7 +14,7 @@ const T = {
     active: "שירותים פעילים",
     refresh: "רענון",
     loading: "טוען…",
-    noServices: "אין שירותים פעילים.",
+    noServices: "לא נמצאו שירותים.",
     duration: "משך (דק׳)",
     priceAmount: "מחיר",
     priceDisplay: "תצוגת מחיר",
@@ -48,6 +48,8 @@ const T = {
   },
 };
 
+const getServiceTitle = (svc, lang) => svc?.translations?.[lang]?.title || svc?.title || svc?.translations?.en?.title || "";
+
 export default function AdminServices() {
   const [authed] = useState(() => Boolean(getAuthToken()));
   const [lang, setLang] = useState("he");
@@ -79,7 +81,7 @@ export default function AdminServices() {
       });
       setDrafts(map);
     } catch (err) {
-      setError(err?.payload?.error || err.message || "Failed to load services");
+      setError(err?.payload?.error || err.message || (lang === "he" ? "שגיאה בטעינת שירותים" : "Failed to load services"));
     } finally {
       setLoading(false);
     }
@@ -115,7 +117,7 @@ export default function AdminServices() {
       });
       await loadServices();
     } catch (err) {
-      setError(err?.payload?.error || err.message || "Failed to save service");
+      setError(err?.payload?.error || err.message || (lang === "he" ? "שגיאה בשמירת שירות" : "Failed to save service"));
     } finally {
       setSaving((prev) => ({ ...prev, [id]: false }));
     }
@@ -162,6 +164,9 @@ export default function AdminServices() {
             <Link to="/admin" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
               {T[lang].console}
             </Link>
+            <Link to="/admin/guide" target="_blank" rel="noreferrer" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
+              {lang === "he" ? "מדריך" : "Guide"}
+            </Link>
             <Link to="/" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
               {T[lang].back}
             </Link>
@@ -206,7 +211,8 @@ export default function AdminServices() {
                             onChange={(e) => handleDraftChange(svc._id, "title", e.target.value)}
                             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-white"
                           />
-                          <p className="text-xs text-white/60">{svc._id}</p>
+                          <p className="text-xs text-white/60">{getServiceTitle(svc, lang)}</p>
+                          <p className="text-[10px] text-white/40">{svc._id}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <label className="text-xs text-white/70">

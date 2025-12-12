@@ -101,6 +101,8 @@ const formatMoney = (amount, currency = "ILS") => {
   }
 };
 
+const getServiceTitle = (svc, lang) => svc?.translations?.[lang]?.title || svc?.title || svc?.translations?.en?.title || "";
+
 const normalizeOpeningHours = (hours = []) =>
   Array.from({ length: 7 }).map((_, dow) => {
     const existing = hours.find((entry) => Number(entry.dow) === dow);
@@ -249,16 +251,24 @@ export default function AdminConsole() {
       <header className="border-b border-white/10 bg-black/70 px-6 py-4 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <h1 className="text-xl font-semibold">{T[lang].title}</h1>
-          <div className="flex items-center gap-3 text-sm text-white/70">
-            <Link to="/admin/calendar" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
-              {T[lang].calendar}
-            </Link>
-            <Link to="/admin/services" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
-              {T[lang].services}
-            </Link>
-            <Link to="/" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
-              {T[lang].back}
-            </Link>
+            <div className="flex items-center gap-3 text-sm text-white/70">
+              <Link to="/admin/calendar" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
+                {T[lang].calendar}
+              </Link>
+              <Link to="/admin/services" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
+                {T[lang].services}
+              </Link>
+              <Link
+                to="/admin/guide"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10"
+              >
+                {lang === "he" ? "מדריך" : "Guide"}
+              </Link>
+              <Link to="/" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
+                {T[lang].back}
+              </Link>
             <button onClick={toggleLang} className="rounded-lg border border-white/20 px-3 py-1 hover:bg-white/10">
               {lang === "he" ? "English" : "עברית"}
             </button>
@@ -331,19 +341,19 @@ export default function AdminConsole() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {bookings.map((booking) => (
-                    <tr key={booking._id} className="bg-black/40">
-                      <td className="px-4 py-3">
-                        <p className="font-medium text-white">{booking.customerName}</p>
-                        <p className="text-xs text-white/60">{booking.phone}</p>
+                    {bookings.map((booking) => (
+                      <tr key={booking._id} className="bg-black/40">
+                        <td className="px-4 py-3">
+                          <p className="font-medium text-white">{booking.customerName}</p>
+                          <p className="text-xs text-white/60">{booking.phone}</p>
                         {booking.customerEmail ? (
                           <p className="text-xs text-white/60">{booking.customerEmail}</p>
                         ) : null}
-                      </td>
-                      <td className="px-4 py-3 text-white/80">{booking.serviceId?.title || T[lang].none}</td>
-                      <td className="px-4 py-3 text-white/80">
-                        {booking.startUtc ? new Date(booking.startUtc).toLocaleString() : T[lang].none}
-                      </td>
+                        </td>
+                        <td className="px-4 py-3 text-white/80">{getServiceTitle(booking.serviceId, lang) || T[lang].none}</td>
+                        <td className="px-4 py-3 text-white/80">
+                          {booking.startUtc ? new Date(booking.startUtc).toLocaleString() : T[lang].none}
+                        </td>
                       <td className="px-4 py-3 text-white/80">
                         {booking.totalAmount ? (
                           <>
@@ -437,7 +447,7 @@ export default function AdminConsole() {
                             disabled={!authed || settingsSaving}
                             className="w-full rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
                           />
-                          <span className="text-white/60">→</span>
+                          <span className="text-white/60">{lang === "he" ? "←" : "→"}</span>
                           <input
                             type="time"
                             value={entry.close}
