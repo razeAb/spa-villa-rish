@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, getAuthToken, setAuthToken } from "../api/client";
 
@@ -119,14 +119,13 @@ export default function AdminConsole() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loginError, setLoginError] = useState("");
-  const [settings, setSettings] = useState(null);
   const [settingsForm, setSettingsForm] = useState(null);
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [settingsError, setSettingsError] = useState("");
   const [settingsMessage, setSettingsMessage] = useState("");
   const [settingsSaving, setSettingsSaving] = useState(false);
 
-  const loadBookings = async () => {
+  const loadBookings = useCallback(async () => {
     if (!authed) return;
     setLoading(true);
     setError("");
@@ -142,12 +141,11 @@ export default function AdminConsole() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authed, lang]);
 
   useEffect(() => {
     loadBookings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authed]);
+  }, [loadBookings]);
 
   useEffect(() => {
     let alive = true;
@@ -162,7 +160,6 @@ export default function AdminConsole() {
           bufferMin: data.bufferMin,
           openingHours: normalizeOpeningHours(data.openingHours || []),
         };
-        setSettings(normalized);
         setSettingsForm(normalized);
       })
       .catch((err) => {
@@ -175,7 +172,7 @@ export default function AdminConsole() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [lang]);
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -236,7 +233,6 @@ export default function AdminConsole() {
           bufferMin: updated.bufferMin,
           openingHours: normalizeOpeningHours(updated.openingHours || []),
         };
-        setSettings(normalized);
         setSettingsForm(normalized);
         setSettingsMessage(T[lang].settingsSaved);
       } catch (err) {

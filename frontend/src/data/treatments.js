@@ -1,9 +1,5 @@
 import servicesCatalog from "./servicesCatalog.json";
 
-const pickLocaleValue = (valueMap = {}, locale) => {
-  return valueMap[locale] ?? valueMap.en ?? valueMap.he ?? "";
-};
-
 const RAW_SERVICES = servicesCatalog;
 
 const toLocalizedService = (item, locale) => {

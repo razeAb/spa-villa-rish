@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Calendar, LogOut, RefreshCcw, Wrench } from "lucide-react";
 import { api, getAuthToken, setAuthToken } from "../api/client";
@@ -170,7 +170,6 @@ export default function AdminCalendar() {
   const [selectedDateIso, setSelectedDateIso] = useState(toDateIso(new Date()));
   const [bookings, setBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
-  const [bookingsError, setBookingsError] = useState("");
 
   const [noteDrafts, setNoteDrafts] = useState({});
   const [savingNote, setSavingNote] = useState({});
@@ -208,8 +207,8 @@ export default function AdminCalendar() {
       .listServices()
       .then((data) => {
         setServices(data);
-        if (!newBooking.serviceId && data.length) {
-          setNewBooking((prev) => ({ ...prev, serviceId: data[0]._id }));
+        if (data.length) {
+          setNewBooking((prev) => (prev.serviceId ? prev : { ...prev, serviceId: data[0]._id }));
         }
       })
       .finally(() => setServicesLoading(false));
@@ -261,10 +260,9 @@ export default function AdminCalendar() {
     }
   };
 
-  const loadBookings = async () => {
+  const loadBookings = useCallback(async () => {
     if (!authed) return;
     setBookingsLoading(true);
-    setBookingsError("");
 
     try {
       const data = await api.listBookings({
@@ -273,7 +271,6 @@ export default function AdminCalendar() {
       });
       setBookings(data);
     } catch (err) {
-      setBookingsError(err?.payload?.error || err.message);
       if (err?.status === 401) {
         setAuthToken(null);
         setAuthed(false);
@@ -281,11 +278,11 @@ export default function AdminCalendar() {
     } finally {
       setBookingsLoading(false);
     }
-  };
+  }, [authed, range.from, range.to]);
 
   useEffect(() => {
     loadBookings();
-  }, [authed, range.from, range.to]);
+  }, [loadBookings]);
 
   /* ----------------------------- MONTH CHANGE ----------------------------- */
   const handleMonthShift = (delta) => {

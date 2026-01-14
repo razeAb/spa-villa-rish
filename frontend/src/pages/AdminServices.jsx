@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Wrench, ArrowLeftRight } from "lucide-react";
 import { api, getAuthToken } from "../api/client";
@@ -62,7 +62,7 @@ export default function AdminServices() {
   const [createForm, setCreateForm] = useState({ title: "", priceAmount: "", priceDisplay: "", durationMin: "", description: "" });
   const [createMessage, setCreateMessage] = useState("");
 
-  const loadServices = async () => {
+  const loadServices = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -85,11 +85,11 @@ export default function AdminServices() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [lang]);
 
   useEffect(() => {
     loadServices();
-  }, []);
+  }, [loadServices]);
 
   const handleDraftChange = (id, field, value) => {
     setDrafts((prev) => ({
