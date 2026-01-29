@@ -41,7 +41,7 @@ const isExpiryValid = (expiry) => {
 
 router.post("/authorize", async (req, res) => {
   try {
-    const { cardNumber, expiry, cvc, serviceId } = req.body || {};
+    const { cardNumber, expiry, cvc, serviceId, addOnIds = [] } = req.body || {};
     if (!cardNumber || !expiry || !cvc || !serviceId) {
       return res.status(400).json({ error: "Missing payment fields" });
     }
@@ -65,10 +65,22 @@ router.post("/authorize", async (req, res) => {
       return res.status(400).json({ error: "Service does not have a chargeable price" });
     }
 
+    const addOnMap = new Map(
+      Array.isArray(service.addOns)
+        ? service.addOns.map((addOn) => [String(addOn._id), addOn])
+        : []
+    );
+    const normalizedAddOnIds = Array.isArray(addOnIds) ? addOnIds.map((id) => String(id)) : [];
+    const resolvedAddOns = normalizedAddOnIds.map((id) => addOnMap.get(id)).filter(Boolean);
+    if (resolvedAddOns.length !== normalizedAddOnIds.length) {
+      return res.status(400).json({ error: "One or more add-ons are invalid" });
+    }
+    const addOnsTotal = resolvedAddOns.reduce((sum, addOn) => sum + Number(addOn.priceAmount || 0), 0);
+
     const transactionId = `mock_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const payment = await Payment.create({
       serviceId,
-      amount: service.priceAmount,
+      amount: Number(service.priceAmount) + addOnsTotal,
       currency: service.priceCurrency || "ILS",
       transactionId,
       maskedCard: `**** **** **** ${digits.slice(-4)}`,
@@ -76,6 +88,13 @@ router.post("/authorize", async (req, res) => {
       expiresOn: expiry,
       provider: "mock",
       status: "authorized",
+      addOns: resolvedAddOns.map((addOn) => ({
+        addOnId: String(addOn._id),
+        title: addOn.title,
+        description: addOn.description || "",
+        priceAmount: Number(addOn.priceAmount || 0),
+        durationMin: Number(addOn.durationMin || 0),
+      })),
     });
 
     res.status(201).json({

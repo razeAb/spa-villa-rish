@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useLocale } from "../context/LocaleContext.jsx";
+import { useServices } from "../hooks/useServices";
 
 const VIP_SLUG = "vip-couple";
 
@@ -9,19 +10,12 @@ const COPY = {
   he: {
     kicker: "חבילות +",
     heading: "חבילת VIP זוגית",
-    bullets: ["כניסה לשניים עד 3 שעות", "עיסוי של 50 דקות לכל אחד בחדר פרטי", "גישה חופשית לחמאם, סאונה וג'קוזי", "פינת קפה ועוגה"],
     price: "₪1,200 — זוג VIP",
     cta: "שריין מקום",
   },
   en: {
     kicker: "Packages +",
     heading: "VIP Couple Package",
-    bullets: [
-      "Entry for two, up to 3 hours",
-      "50-minute massage for each person in a private massage room",
-      "Free access to the Turkish hammam, sauna & jacuzzi",
-      "Coffee & cake corner",
-    ],
     price: "₪1,200 — VIP Couple",
     cta: "Book Now",
   },
@@ -36,8 +30,11 @@ const sectionMotion = {
 
 export default function VipPackage() {
   const { locale } = useLocale();
+  const { services } = useServices();
   const isHebrew = locale === "he";
   const copy = COPY[locale];
+  const service = services.find((svc) => svc.slug === VIP_SLUG);
+  const description = service?.translations?.[locale]?.description || service?.description || "";
 
   return (
     <motion.section
@@ -66,11 +63,9 @@ export default function VipPackage() {
 
           <h2 className="font-serif text-[42px] leading-[1.1] sm:text-[56px]">{copy.heading}</h2>
 
-          <ul className={`mt-6 list-disc space-y-3 text-base leading-relaxed text-white/85 ${isHebrew ? "pr-5" : "pl-5"}`}>
-            {copy.bullets.map((item, idx) => (
-              <li key={idx}>{item}</li>
-            ))}
-          </ul>
+          {description ? (
+            <p className="mt-6 text-base leading-relaxed text-white/85 whitespace-pre-line">{description}</p>
+          ) : null}
 
           <p className="mt-8 text-lg italic">{copy.price}</p>
 

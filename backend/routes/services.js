@@ -13,6 +13,25 @@ const slugify = (value = "") =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+const normalizeAddOns = (addOns = []) => {
+  if (!Array.isArray(addOns)) return [];
+  return addOns
+    .map((addOn) => {
+      if (!addOn || typeof addOn !== "object") return null;
+      const title = String(addOn.title || "").trim();
+      const description = String(addOn.description || "").trim();
+      const priceAmount = Number(addOn.priceAmount);
+      const durationMin = Number(addOn.durationMin) || 0;
+      if (!title || !Number.isFinite(priceAmount) || priceAmount <= 0) return null;
+      const payload = { title, description, priceAmount, durationMin };
+      if (addOn._id) {
+        payload._id = addOn._id;
+      }
+      return payload;
+    })
+    .filter(Boolean);
+};
+
 // Public list of active services
 router.get("/", async (_req, res) => {
   try {
@@ -61,6 +80,9 @@ router.post("/", auth, async (req, res) => {
       },
       isActive,
     };
+    if (Object.prototype.hasOwnProperty.call(req.body, "addOns")) {
+      payload.addOns = normalizeAddOns(req.body.addOns);
+    }
     if (id) {
       if (slug) payload.slug = slug;
       const doc = await Service.findByIdAndUpdate(id, payload, { new: true, runValidators: true });

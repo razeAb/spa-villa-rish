@@ -1,15 +1,18 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { useLocale } from "../context/LocaleContext.jsx";
 
 const COPY = {
   he: {
     headingLine1: "ספא ריש",
     headingLine2: "חמאם וספא",
+    loginCta: "כניסת אדמין",
     scroll: "גלול להמשך",
   },
   en: {
     headingLine1: "SPA RISH",
     headingLine2: "HAMMAM & SPA",
+    loginCta: "Admin Login",
     scroll: "SCROLL  EXPLORE",
   },
 };
@@ -59,6 +62,14 @@ export default function HeroLanding() {
             <br />
             {copy.headingLine2}
           </h1>
+          <Link
+            to="/admin"
+            className={`mt-10 inline-flex items-center justify-center rounded-full border border-white/40 bg-black/40 px-6 py-2 text-xs uppercase tracking-[0.35em] text-white/90 backdrop-blur transition hover:bg-white/10 ${
+              isHebrew ? "tracking-[0.2em]" : ""
+            }`}
+          >
+            {copy.loginCta}
+          </Link>
         </motion.div>
       </div>
 

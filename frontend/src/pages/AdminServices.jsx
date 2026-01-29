@@ -24,6 +24,13 @@ const T = {
     addTitle: "הוספת שירות",
     add: "הוסף שירות",
     description: "תיאור (לא חובה)",
+    addOns: "תוספות",
+    addOnName: "שם תוספת",
+    addOnDescription: "תיאור",
+    addOnPrice: "מחיר תוספת",
+    addOnDuration: "משך (דק׳)",
+    addOnAdd: "הוסף תוספת",
+    addOnRemove: "הסר",
   },
   en: {
     header: "Admin · Services",
@@ -45,6 +52,13 @@ const T = {
     addTitle: "Add service",
     add: "Add service",
     description: "Description (optional)",
+    addOns: "Add-ons",
+    addOnName: "Add-on name",
+    addOnDescription: "Description",
+    addOnPrice: "Add-on price",
+    addOnDuration: "Duration (min)",
+    addOnAdd: "Add add-on",
+    addOnRemove: "Remove",
   },
 };
 
@@ -70,14 +84,23 @@ export default function AdminServices() {
       setServices(data);
       const map = {};
       data.forEach((svc) => {
-        map[svc._id] = {
-          title: svc.title || "",
-          priceAmount: svc.priceAmount || "",
-          priceDisplay: svc.priceDisplay || "",
-          durationMin: svc.durationMin || "",
-          description: svc.description || "",
-          isActive: svc.isActive !== false,
-        };
+                map[svc._id] = {
+                  title: svc.title || "",
+                  priceAmount: svc.priceAmount || "",
+                  priceDisplay: svc.priceDisplay || "",
+                  durationMin: svc.durationMin || "",
+                  description: svc.description || "",
+                  isActive: svc.isActive !== false,
+                  addOns: Array.isArray(svc.addOns)
+                    ? svc.addOns.map((addOn) => ({
+                        _id: addOn._id,
+                        title: addOn.title || "",
+                        description: addOn.description || "",
+                        priceAmount: addOn.priceAmount ?? "",
+                        durationMin: addOn.durationMin ?? "",
+                      }))
+                    : [],
+                };
       });
       setDrafts(map);
     } catch (err) {
@@ -101,6 +124,51 @@ export default function AdminServices() {
     }));
   };
 
+  const handleAddOnChange = (serviceId, index, field, value) => {
+    setDrafts((prev) => {
+      const service = prev[serviceId] || {};
+      const nextAddOns = Array.isArray(service.addOns) ? [...service.addOns] : [];
+      nextAddOns[index] = { ...nextAddOns[index], [field]: value };
+      return {
+        ...prev,
+        [serviceId]: {
+          ...service,
+          addOns: nextAddOns,
+        },
+      };
+    });
+  };
+
+  const handleAddOnAdd = (serviceId) => {
+    setDrafts((prev) => {
+      const service = prev[serviceId] || {};
+      const nextAddOns = Array.isArray(service.addOns) ? [...service.addOns] : [];
+      nextAddOns.push({ title: "", description: "", priceAmount: "", durationMin: "" });
+      return {
+        ...prev,
+        [serviceId]: {
+          ...service,
+          addOns: nextAddOns,
+        },
+      };
+    });
+  };
+
+  const handleAddOnRemove = (serviceId, index) => {
+    setDrafts((prev) => {
+      const service = prev[serviceId] || {};
+      const nextAddOns = Array.isArray(service.addOns) ? [...service.addOns] : [];
+      nextAddOns.splice(index, 1);
+      return {
+        ...prev,
+        [serviceId]: {
+          ...service,
+          addOns: nextAddOns,
+        },
+      };
+    });
+  };
+
   const handleSave = async (id, overrides = {}) => {
     const draft = { ...drafts[id], ...overrides };
     if (!draft) return;
@@ -114,6 +182,15 @@ export default function AdminServices() {
         priceAmount: Number(draft.priceAmount),
         priceDisplay: draft.priceDisplay,
         isActive: Boolean(draft.isActive),
+        addOns: Array.isArray(draft.addOns)
+          ? draft.addOns.map((addOn) => ({
+              _id: addOn._id,
+              title: addOn.title,
+              description: addOn.description,
+              priceAmount: Number(addOn.priceAmount),
+              durationMin: Number(addOn.durationMin) || 0,
+            }))
+          : [],
       });
       await loadServices();
     } catch (err) {
@@ -243,6 +320,15 @@ export default function AdminServices() {
                             />
                           </label>
                         </div>
+                        <label className="w-full text-xs text-white/70">
+                          {T[lang].description}
+                          <textarea
+                            value={drafts[svc._id]?.description ?? ""}
+                            onChange={(e) => handleDraftChange(svc._id, "description", e.target.value)}
+                            className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
+                            rows={2}
+                          />
+                        </label>
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleSave(svc._id)}
@@ -257,6 +343,70 @@ export default function AdminServices() {
                           >
                             {T[lang].deactivate}
                           </button>
+                        </div>
+                      </div>
+                      <div className="mt-4 rounded-lg border border-white/10 bg-white/5 p-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs uppercase tracking-wide text-white/60">{T[lang].addOns}</p>
+                          <button
+                            type="button"
+                            onClick={() => handleAddOnAdd(svc._id)}
+                            className="rounded-md border border-white/20 px-2 py-1 text-xs text-white/80 hover:bg-white/10"
+                          >
+                            {T[lang].addOnAdd}
+                          </button>
+                        </div>
+                        <div className="mt-3 space-y-2">
+                          {(drafts[svc._id]?.addOns || []).map((addOn, index) => (
+                            <div key={addOn._id || `${svc._id}-addon-${index}`} className="flex flex-wrap items-end gap-2">
+                              <label className="text-xs text-white/70">
+                                {T[lang].addOnName}
+                                <input
+                                  type="text"
+                                  value={addOn.title || ""}
+                                  onChange={(e) => handleAddOnChange(svc._id, index, "title", e.target.value)}
+                                  className="mt-1 w-40 rounded-lg border border-white/10 bg-black/40 px-2 py-1 text-white"
+                                />
+                              </label>
+                              <label className="text-xs text-white/70">
+                                {T[lang].addOnDescription}
+                                <input
+                                  type="text"
+                                  value={addOn.description || ""}
+                                  onChange={(e) => handleAddOnChange(svc._id, index, "description", e.target.value)}
+                                  className="mt-1 w-48 rounded-lg border border-white/10 bg-black/40 px-2 py-1 text-white"
+                                />
+                              </label>
+                              <label className="text-xs text-white/70">
+                                {T[lang].addOnPrice}
+                                <input
+                                  type="number"
+                                  value={addOn.priceAmount ?? ""}
+                                  onChange={(e) => handleAddOnChange(svc._id, index, "priceAmount", e.target.value)}
+                                  className="mt-1 w-24 rounded-lg border border-white/10 bg-black/40 px-2 py-1 text-white"
+                                />
+                              </label>
+                              <label className="text-xs text-white/70">
+                                {T[lang].addOnDuration}
+                                <input
+                                  type="number"
+                                  value={addOn.durationMin ?? ""}
+                                  onChange={(e) => handleAddOnChange(svc._id, index, "durationMin", e.target.value)}
+                                  className="mt-1 w-24 rounded-lg border border-white/10 bg-black/40 px-2 py-1 text-white"
+                                />
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => handleAddOnRemove(svc._id, index)}
+                                className="mb-1 rounded-md border border-red-300/40 px-2 py-1 text-xs text-red-200 hover:bg-red-500/10"
+                              >
+                                {T[lang].addOnRemove}
+                              </button>
+                            </div>
+                          ))}
+                          {(drafts[svc._id]?.addOns || []).length === 0 ? (
+                            <p className="text-xs text-white/40">{lang === "he" ? "אין תוספות" : "No add-ons yet."}</p>
+                          ) : null}
                         </div>
                       </div>
                     </div>

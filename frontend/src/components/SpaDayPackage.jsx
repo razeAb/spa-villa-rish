@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useLocale } from "../context/LocaleContext.jsx";
+import { useServices } from "../hooks/useServices";
 
 const SPA_DAY_SLUG = "spa-day";
 
@@ -9,26 +10,12 @@ const COPY = {
   he: {
     kicker: "חבילות +",
     heading: "יום ספא",
-    bullets: [
-      "כניסה לשניים עד 3 שעות",
-      "גישה חופשית לחמאם, לסאונה ולג'קוזי",
-      "לאונג' מעוצב ונעים",
-      "פינת קפה ועוגה",
-      "ללא עיסוי כלול",
-    ],
     price: "₪1,000 — יום ספא",
     cta: "שריין מקום",
   },
   en: {
     kicker: "Packages +",
     heading: "Spa Day",
-    bullets: [
-      "Entry for two, up to 3 hours",
-      "Free access to the Turkish hammam, sauna & jacuzzi",
-      "Cozy, stylish lounge area",
-      "Coffee & cake corner",
-      "No massage included",
-    ],
     price: "₪1,000 — Spa Day",
     cta: "Book Now",
   },
@@ -43,8 +30,11 @@ const sectionMotion = {
 
 export default function SpaDayPackage() {
   const { locale } = useLocale();
+  const { services } = useServices();
   const isHebrew = locale === "he";
   const copy = COPY[locale];
+  const service = services.find((svc) => svc.slug === SPA_DAY_SLUG);
+  const description = service?.translations?.[locale]?.description || service?.description || "";
 
   return (
     <motion.section
@@ -73,11 +63,9 @@ export default function SpaDayPackage() {
 
           <h2 className="font-serif text-[42px] leading-[1.1] sm:text-[56px]">{copy.heading}</h2>
 
-          <ul className={`mt-6 list-disc space-y-3 text-base leading-relaxed text-white/85 ${isHebrew ? "pr-5" : "pl-5"}`}>
-            {copy.bullets.map((item, idx) => (
-              <li key={idx}>{item}</li>
-            ))}
-          </ul>
+          {description ? (
+            <p className="mt-6 text-base leading-relaxed text-white/85 whitespace-pre-line">{description}</p>
+          ) : null}
 
           <p className="mt-8 text-lg italic">{copy.price}</p>
 

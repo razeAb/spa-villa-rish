@@ -3,6 +3,9 @@ import React from "react";
 import { motion } from "framer-motion";
 import { FaWhatsapp } from "react-icons/fa";
 import { useLocale } from "../context/LocaleContext.jsx";
+import { useServices } from "../hooks/useServices";
+
+const VILLA_SLUG = "villa-stay";
 
 const sectionMotion = {
   initial: { opacity: 0, y: 35 },
@@ -16,38 +19,21 @@ export default function VillaStayPage() {
     "https://wa.me/972506290202?text=Hi%20Spa%20Rish%2C%20I%27m%20interested%20in%20the%20Villa%20overnight%20stay%20(₪1%2C300)%20for%20two.";
 
   const { locale } = useLocale();
+  const { services } = useServices();
   const isHebrew = locale === "he";
+  const service = services.find((svc) => svc.slug === VILLA_SLUG);
+  const description = service?.translations?.[locale]?.description || service?.description || "";
 
   const copy = isHebrew
     ? {
         eyebrow: "חבילות +",
         heading: "לינה בוילה",
-        bullets: [
-          "לינת לילה לזוג בווילה ריש המפוארת (על בסיס זמינות)",
-          "הווילה מדורגת 10 בבוקינג",
-          "בריכה מחוממת פרטית",
-          "פינת ברביקיו",
-          "מטבח מאובזר",
-          "גן פרטי",
-          "חדרים מעוצבים",
-          "המשך מושלם אחרי יום הספא",
-        ],
         price: "₪1,300 — ללילה (לזוג)",
         cta: "שלחו וואטסאפ",
       }
     : {
         eyebrow: "Packages +",
         heading: "Villa Overnight Stay",
-        bullets: [
-          "Overnight stay for two at the luxurious Villa Rish (subject to availability)",
-          "Villa rated 10 on Booking",
-          "Private heated pool",
-          "BBQ corner",
-          "Fully equipped kitchen",
-          "Private garden",
-          "Designer rooms",
-          "Perfect continuation after your spa day",
-        ],
         price: "₪1,300 — per night (for two)",
         cta: "WhatsApp Us",
       };
@@ -79,11 +65,9 @@ export default function VillaStayPage() {
 
           <h1 className="font-serif text-[42px] leading-[1.1] sm:text-[56px]">{copy.heading}</h1>
 
-          <ul className={`mt-6 list-disc space-y-3 text-base leading-relaxed text-white/85 ${isHebrew ? "pr-5" : "pl-5"}`}>
-            {copy.bullets.map((item, idx) => (
-              <li key={idx}>{item}</li>
-            ))}
-          </ul>
+          {description ? (
+            <p className="mt-6 text-base leading-relaxed text-white/85 whitespace-pre-line">{description}</p>
+          ) : null}
 
           <p className="mt-8 text-lg italic">{copy.price}</p>
 

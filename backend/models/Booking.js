@@ -21,6 +21,18 @@ const BookingSchema = new mongoose.Schema(
     paymentStatus: { type: String, enum: ["authorized", "captured", "refunded", "failed", "none"], default: "none" },
     totalAmount: { type: Number, default: 0 },
     currency: { type: String, default: "ILS" },
+    addOns: {
+      type: [
+        {
+          addOnId: { type: String, default: "" },
+          title: { type: String, default: "" },
+          description: { type: String, default: "" },
+          priceAmount: { type: Number, default: 0 },
+          durationMin: { type: Number, default: 0 },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 );

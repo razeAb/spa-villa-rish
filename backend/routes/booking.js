@@ -79,7 +79,8 @@ router.post('/', async (req,res) => {
       paymentId: payment._id,
       paymentStatus: 'captured',
       totalAmount: payment.amount,
-      currency: payment.currency || 'ILS'
+      currency: payment.currency || 'ILS',
+      addOns: Array.isArray(payment.addOns) ? payment.addOns : [],
     };
     if (typeof note === 'string' && note.trim()) {
       payload.note = note.trim();

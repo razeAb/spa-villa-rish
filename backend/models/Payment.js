@@ -17,6 +17,18 @@ const PaymentSchema = new mongoose.Schema(
     last4: { type: String, default: "" },
     expiresOn: { type: String, default: "" },
     failureReason: { type: String, default: "" },
+    addOns: {
+      type: [
+        {
+          addOnId: { type: String, default: "" },
+          title: { type: String, default: "" },
+          description: { type: String, default: "" },
+          priceAmount: { type: Number, default: 0 },
+          durationMin: { type: Number, default: 0 },
+        },
+      ],
+      default: [],
+    },
     metadata: { type: Map, of: String, default: {} },
   },
   { timestamps: true }

@@ -10,6 +10,16 @@ const LocalizedCopySchema = new mongoose.Schema(
   { _id: false }
 );
 
+const AddOnSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    description: { type: String, default: "" },
+    priceAmount: { type: Number, required: true },
+    durationMin: { type: Number, default: 0 },
+  },
+  { _id: true }
+);
+
 const ServiceSchema = new mongoose.Schema(
   {
     slug: { type: String, unique: true, index: true },
@@ -25,6 +35,7 @@ const ServiceSchema = new mongoose.Schema(
       en: { type: LocalizedCopySchema },
       he: { type: LocalizedCopySchema },
     },
+    addOns: { type: [AddOnSchema], default: [] },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }

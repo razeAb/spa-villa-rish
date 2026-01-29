@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useLocale } from "../context/LocaleContext.jsx";
+import { useServices } from "../hooks/useServices";
 
 const HAMMAM_SLUG = "turkish-hammam";
 
@@ -9,26 +10,12 @@ const COPY = {
   he: {
     kicker: "חבילות +",
     heading: "חמאם טורקי",
-    bullets: [
-      "כניסה לשניים עד 3 שעות",
-      "עיסוי של 30 דקות לכל אחד על השיש בחמאם",
-      "גישה חופשית לסאונה ולג'קוזי",
-      "פינת קפה ועוגה",
-      "חוויה אותנטית של חמאם מסורתי",
-    ],
     price: "₪1,500 — חמאם טורקי",
     cta: "שריין מקום",
   },
   en: {
     kicker: "Packages +",
     heading: "Turkish Hammam",
-    bullets: [
-      "Entry for two, up to 3 hours",
-      "30-minute massage for each person on the marble slab",
-      "Free access to the sauna & jacuzzi",
-      "Coffee & cake corner",
-      "Authentic experience of a traditional hammam",
-    ],
     price: "₪1,500 — Turkish Hammam",
     cta: "Book Now",
   },
@@ -43,8 +30,11 @@ const sectionMotion = {
 
 export default function TurkishHammamPackage() {
   const { locale } = useLocale();
+  const { services } = useServices();
   const isHebrew = locale === "he";
   const copy = COPY[locale];
+  const service = services.find((svc) => svc.slug === HAMMAM_SLUG);
+  const description = service?.translations?.[locale]?.description || service?.description || "";
 
   return (
     <motion.section
@@ -73,11 +63,9 @@ export default function TurkishHammamPackage() {
 
           <h2 className="font-serif text-[42px] leading-[1.1] sm:text-[56px]">{copy.heading}</h2>
 
-          <ul className={`mt-6 list-disc space-y-3 text-base leading-relaxed text-white/85 ${isHebrew ? "pr-5" : "pl-5"}`}>
-            {copy.bullets.map((item, idx) => (
-              <li key={idx}>{item}</li>
-            ))}
-          </ul>
+          {description ? (
+            <p className="mt-6 text-base leading-relaxed text-white/85 whitespace-pre-line">{description}</p>
+          ) : null}
 
           <p className="mt-8 text-lg italic">{copy.price}</p>
 

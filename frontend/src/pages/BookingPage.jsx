@@ -27,6 +27,10 @@ const COPY = {
     expiry: "תוקף (MM/YY)",
     cvc: "CVV",
     hostedField: "שדה תשלום מאובטח (החליפו בספק התשלומים שלכם)",
+    addOnsTitle: "תוספות",
+    addOnsHint: "בחרו תוספות בתשלום נוסף.",
+    addOnsNone: "אין תוספות זמינות לחבילה זו.",
+    totalLabel: "סה״כ לתשלום",
     next: "הבא",
     back: "חזרה",
     pay: "שלם וסיים",
@@ -60,6 +64,10 @@ const COPY = {
     expiry: "Expiry (MM/YY)",
     cvc: "CVV",
     hostedField: "Hosted payment field placeholder",
+    addOnsTitle: "Add-ons",
+    addOnsHint: "Choose optional add-ons for an additional fee.",
+    addOnsNone: "No add-ons available for this package.",
+    totalLabel: "Total due",
     next: "Next",
     back: "Back",
     pay: "Pay & finish",
@@ -156,6 +164,7 @@ export default function BookingPage() {
   const [slotsError, setSlotsError] = useState("");
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [reservedSlots, setReservedSlots] = useState([]);
+  const [selectedAddOnIds, setSelectedAddOnIds] = useState([]);
 
   const [payment, setPayment] = useState({ cardNumber: "", expiry: "", cvc: "" });
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
@@ -165,6 +174,10 @@ export default function BookingPage() {
     if (!initialServiceSlug) return;
     setServiceSlug(initialServiceSlug);
   }, [initialServiceSlug]);
+
+  useEffect(() => {
+    setSelectedAddOnIds([]);
+  }, [serviceSlug]);
 
   useEffect(() => {
     let alive = true;
@@ -258,6 +271,21 @@ export default function BookingPage() {
   const selectedCatalogService = useMemo(() => serviceOptions.find((svc) => svc.slug === serviceSlug) || null, [serviceOptions, serviceSlug]);
 
   const selectedServiceDoc = serviceSlug ? servicesBySlug[serviceSlug] : null;
+  const availableAddOns = useMemo(
+    () => (Array.isArray(selectedServiceDoc?.addOns) ? selectedServiceDoc.addOns : []),
+    [selectedServiceDoc]
+  );
+  const selectedAddOns = useMemo(
+    () => availableAddOns.filter((addOn) => selectedAddOnIds.includes(String(addOn._id))),
+    [availableAddOns, selectedAddOnIds]
+  );
+  const addOnsTotal = useMemo(
+    () => selectedAddOns.reduce((sum, addOn) => sum + Number(addOn.priceAmount || 0), 0),
+    [selectedAddOns]
+  );
+  const basePriceAmount = Number(selectedServiceDoc?.priceAmount || selectedCatalogService?.priceAmount || 0);
+  const priceCurrency = selectedServiceDoc?.priceCurrency || selectedCatalogService?.priceCurrency || "ILS";
+  const totalPrice = basePriceAmount + addOnsTotal;
   const serviceIdForApi = selectedServiceDoc?._id;
   const serviceHasLiveId = Boolean(serviceIdForApi && isMongoId(serviceIdForApi));
 
@@ -386,6 +414,7 @@ export default function BookingPage() {
         cardNumber: payment.cardNumber.trim(),
         expiry: payment.expiry.trim(),
         cvc: payment.cvc.trim(),
+        addOnIds: selectedAddOnIds,
       });
       await api.createBooking({
         serviceId: selectedServiceDoc._id,
@@ -498,6 +527,55 @@ export default function BookingPage() {
                 </label>
               )}
 
+              <div className="rounded-xl border border-white/15 bg-white/5 p-4">
+                <p className="text-sm font-semibold text-white">{copy.addOnsTitle}</p>
+                <p className="mt-1 text-xs text-white/60">{copy.addOnsHint}</p>
+                {availableAddOns.length ? (
+                  <div className="mt-4 space-y-2">
+                    {availableAddOns.map((addOn) => {
+                      const addOnId = String(addOn._id);
+                      const isSelected = selectedAddOnIds.includes(addOnId);
+                      return (
+                        <label
+                          key={addOnId}
+                          className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/80"
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() =>
+                                setSelectedAddOnIds((prev) =>
+                                  prev.includes(addOnId) ? prev.filter((id) => id !== addOnId) : [...prev, addOnId]
+                                )
+                              }
+                              className="h-4 w-4 rounded border-white/40 bg-transparent"
+                            />
+                            <span>
+                              {addOn.title}
+                              {addOn.durationMin ? ` · ${formatDuration(addOn.durationMin, locale)}` : ""}
+                            </span>
+                          </div>
+                          {addOn.description ? (
+                            <span className="text-[11px] text-white/50">{addOn.description}</span>
+                          ) : null}
+                          <span className="text-xs uppercase tracking-[0.25em] text-white/60">
+                            {formatCurrency(addOn.priceAmount, priceCurrency, locale)}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-xs text-white/40">{copy.addOnsNone}</p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm">
+                <span className="text-white/70">{copy.totalLabel}</span>
+                <span className="font-semibold text-white">{formatCurrency(totalPrice, priceCurrency, locale)}</span>
+              </div>
+
               <div>
                 <p className="text-sm">{copy.dateLabel}</p>
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -588,6 +666,30 @@ export default function BookingPage() {
       <form className="space-y-6" onSubmit={handlePay}>
         <h2 className="text-2xl font-semibold text-white">{copy.paymentTitle}</h2>
         <p className="text-sm text-white/70">{copy.paymentDesc}</p>
+
+        <div className="rounded-2xl border border-white/15 bg-white/5 p-4 text-sm text-white/80">
+          <p className="text-xs uppercase tracking-[0.3em] text-white/50">
+            {selectedCatalogService?.title || selectedServiceDoc?.title || ""}
+          </p>
+          {selectedAddOns.length ? (
+            <div className="mt-3 space-y-1 text-xs text-white/60">
+              {selectedAddOns.map((addOn) => (
+                <div key={addOn._id} className="flex items-center justify-between">
+                  <span>
+                    {addOn.title}
+                    {addOn.durationMin ? ` · ${formatDuration(addOn.durationMin, locale)}` : ""}
+                    {addOn.description ? ` — ${addOn.description}` : ""}
+                  </span>
+                  <span>{formatCurrency(addOn.priceAmount, priceCurrency, locale)}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <div className="mt-3 flex items-center justify-between text-sm font-semibold text-white">
+            <span>{copy.totalLabel}</span>
+            <span>{formatCurrency(totalPrice, priceCurrency, locale)}</span>
+          </div>
+        </div>
 
         <div className="rounded-2xl border border-emerald-200/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
           {copy.hostedField}
