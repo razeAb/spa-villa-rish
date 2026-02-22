@@ -1,4 +1,4 @@
-// src/App.js
+// src/App.jsx
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import AppLayout from "./components/AppLayout";

@@ -2,7 +2,7 @@ const TOKEN_STORAGE_KEY = "spa-villa-rish/admin-token";
 const DEFAULT_BASE = "/api";
 
 const baseUrl = (() => {
-  const envUrl = process.env.REACT_APP_API_URL;
+  const envUrl = import.meta.env.VITE_API_URL;
   if (!envUrl) return DEFAULT_BASE;
   return envUrl.endsWith("/") ? envUrl.slice(0, -1) : envUrl;
 })();
