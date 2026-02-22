@@ -8,6 +8,7 @@ const PACKAGE_LINKS = [
   { id: "hammam", label: { he: "ענני קצף", en: "Foam Clouds" } },
   { id: "spa-day", label: { he: "מגע המשי", en: "Silk Touch" } },
   { id: "gallery", label: { he: "גלריה", en: "Gallery" } },
+  { id: "treatments", label: { he: "טיפולים אישיים", en: "Treatments" } },
   { id: "villa-stay", label: { he: "לינת וילה", en: "Villa Stay" } },
 ];
 

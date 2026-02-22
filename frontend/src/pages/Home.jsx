@@ -4,6 +4,7 @@ import VipPackage from "../components/VipPackage";
 import TurkishHammamPackage from "../components/TurkishHammamPackage";
 import SpaDayPackage from "../components/SpaDayPackage";
 import SpaPhotosCarousel from "../components/SpaPhotosCarousel";
+import IndividualTreatments from "../components/IndividualTreatments";
 import VillaStayPage from "../components/VillaStayPage";
 
 export default function Home() {
@@ -20,6 +21,7 @@ export default function Home() {
       <TurkishHammamPackage />
       <SpaDayPackage />
       <SpaPhotosCarousel />
+      <IndividualTreatments />
       <VillaStayPage />
     </motion.div>
   );

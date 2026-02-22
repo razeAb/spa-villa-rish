@@ -67,19 +67,19 @@
     "category": "massage",
     "durationMin": 60,
     "priceAmount": 160,
-    "priceCurrency": "USD",
+    "priceCurrency": "ILS",
     "translations": {
       "en": {
         "title": "Dry Sauna & Jacuzzi",
-        "description": "60 minutes – $160 • 90 minutes – $210",
+        "description": "60 minutes – ₪160 • 90 minutes – ₪210",
         "typeLabel": "Treatment",
-        "priceDisplay": "$160 / $210"
+        "priceDisplay": "₪160 / ₪210"
       },
       "he": {
         "title": "סאונה יבשה וג'קוזי",
-        "description": "60 דקות – $160 • 90 דקות – $210",
+        "description": "60 דקות – ₪160 • 90 דקות – ₪210",
         "typeLabel": "טיפול",
-        "priceDisplay": "$160 / $210"
+        "priceDisplay": "₪160 / ₪210"
       }
     }
   },
@@ -88,19 +88,19 @@
     "category": "massage",
     "durationMin": 60,
     "priceAmount": 160,
-    "priceCurrency": "USD",
+    "priceCurrency": "ILS",
     "translations": {
       "en": {
         "title": "Traditional Turkish Hammam",
-        "description": "60 minutes – $160 • 90 minutes – $210",
+        "description": "60 minutes – ₪160 • 90 minutes – ₪210",
         "typeLabel": "Treatment",
-        "priceDisplay": "$160 / $210"
+        "priceDisplay": "₪160 / ₪210"
       },
       "he": {
         "title": "חמאם טורקי מסורתי",
-        "description": "60 דקות – $160 • 90 דקות – $210",
+        "description": "60 דקות – ₪160 • 90 דקות – ₪210",
         "typeLabel": "טיפול",
-        "priceDisplay": "$160 / $210"
+        "priceDisplay": "₪160 / ₪210"
       }
     }
   },
@@ -109,19 +109,19 @@
     "category": "massage",
     "durationMin": 60,
     "priceAmount": 160,
-    "priceCurrency": "USD",
+    "priceCurrency": "ILS",
     "translations": {
       "en": {
         "title": "Massage",
-        "description": "60 minutes – $160 • 90 minutes – $210",
+        "description": "60 minutes – ₪160 • 90 minutes – ₪210",
         "typeLabel": "Treatment",
-        "priceDisplay": "$160 / $210"
+        "priceDisplay": "₪160 / ₪210"
       },
       "he": {
         "title": "עיסוי",
-        "description": "60 דקות – $160 • 90 דקות – $210",
+        "description": "60 דקות – ₪160 • 90 דקות – ₪210",
         "typeLabel": "טיפול",
-        "priceDisplay": "$160 / $210"
+        "priceDisplay": "₪160 / ₪210"
       }
     }
   },
@@ -130,19 +130,19 @@
     "category": "massage",
     "durationMin": 60,
     "priceAmount": 160,
-    "priceCurrency": "USD",
+    "priceCurrency": "ILS",
     "translations": {
       "en": {
         "title": "Pampering Options",
-        "description": "60 minutes – $160 • 90 minutes – $210",
+        "description": "60 minutes – ₪160 • 90 minutes – ₪210",
         "typeLabel": "Treatment",
-        "priceDisplay": "$160 / $210"
+        "priceDisplay": "₪160 / ₪210"
       },
       "he": {
         "title": "אפשרויות פינוק",
-        "description": "60 דקות – $160 • 90 דקות – $210",
+        "description": "60 דקות – ₪160 • 90 דקות – ₪210",
         "typeLabel": "טיפול",
-        "priceDisplay": "$160 / $210"
+        "priceDisplay": "₪160 / ₪210"
       }
     }
   },
