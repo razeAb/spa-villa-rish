@@ -4,21 +4,23 @@ import { Link } from "react-router-dom";
 import { useLocale } from "../context/LocaleContext.jsx";
 import { useServices } from "../hooks/useServices";
 
-const VIP_SLUG = "vip-couple";
+const VIP_SLUG = "bff-moments";
 
 const COPY = {
   he: {
     kicker: "חבילות +",
-    heading: "חבילת VIP זוגית",
-    description: "כניסה לשניים עד 3 שעות • עיסוי של 50 דקות לכל אחד בחדר פרטי • גישה חופשית לחמאם, סאונה וג'קוזי • פינת קפה ועוגה.",
-    price: "₪1,200 — זוג VIP",
+    heading: "רגעי BFF",
+    description:
+      "שימוש פרטי בחמאם, סאונה וג'קוזי • עיסוי מקצועי 45 דקות • ערכת חמאם לטיפול עצמי • כיבוד קפה ותה • 2 שעות: ₪400 למשתתפת • 3 שעות: ₪500 למשתתפת • מינימום 3 משתתפות.",
+    price: "₪400–₪500 למשתתפת",
     cta: "שריין מקום",
   },
   en: {
     kicker: "Packages +",
-    heading: "VIP Couple Package",
-    description: "Entry for two up to 3 hours • 50-minute massage for each • Full access to hammam, sauna & jacuzzi • Coffee & cake corner.",
-    price: "₪1,200 — VIP Couple",
+    heading: "BFF Moments",
+    description:
+      "Private use of Hammam, Sauna & Jacuzzi • 45-minute professional massage • Hammam treatment kit • Coffee & tea refreshments • 2 Hours: ₪400 per participant • 3 Hours: ₪500 per participant • Minimum 3 participants.",
+    price: "₪400–₪500 per participant",
     cta: "Book Now",
   },
 };

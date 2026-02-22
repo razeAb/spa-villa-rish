@@ -4,10 +4,10 @@ import { FaChevronDown } from "react-icons/fa";
 import { useLocale } from "../context/LocaleContext.jsx";
 
 const PACKAGE_LINKS = [
-  { id: "packages", label: { he: "חבילת VIP", en: "VIP Couple" } },
-  { id: "hammam", label: { he: "חמאם טורקי", en: "Turkish Hammam" } },
-  { id: "spa-day", label: { he: "יום ספא", en: "Spa Day" } },
-  { id: "all-services", label: { he: "כל השירותים", en: "Services" } },
+  { id: "packages", label: { he: "רגעי BFF", en: "BFF Moments" } },
+  { id: "hammam", label: { he: "ענני קצף", en: "Foam Clouds" } },
+  { id: "spa-day", label: { he: "מגע המשי", en: "Silk Touch" } },
+  { id: "gallery", label: { he: "גלריה", en: "Gallery" } },
   { id: "villa-stay", label: { he: "לינת וילה", en: "Villa Stay" } },
 ];
 

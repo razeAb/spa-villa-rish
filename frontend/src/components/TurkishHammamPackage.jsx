@@ -4,22 +4,23 @@ import { Link } from "react-router-dom";
 import { useLocale } from "../context/LocaleContext.jsx";
 import { useServices } from "../hooks/useServices";
 
-const HAMMAM_SLUG = "turkish-hammam";
+const HAMMAM_SLUG = "couple-foam-clouds";
 
 const COPY = {
   he: {
     kicker: "חבילות +",
-    heading: "חמאם טורקי",
-    description: "כניסה לשניים עד 3 שעות • עיסוי של 30 דקות לכל אחד על השיש בחמאם • גישה חופשית לסאונה ולג'קוזי • פינת קפה ועוגה • חוויה אותנטית של חמאם מסורתי.",
-    price: "₪1,500 — חמאם טורקי",
+    heading: "ענני קצף",
+    description:
+      "שימוש חופשי בכל מתקני הספא הפרטיים • סאונה יבשה וג'קוזי • חמאם טורקי מסורתי • עיסוי זוגי מרגיע 45 דקות • ערכת חמאם (סבונים וספוגים ארומטיים) • פינת קפה ותה חופשית.",
+    price: "₪1,180 לזוג",
     cta: "שריין מקום",
   },
   en: {
     kicker: "Packages +",
-    heading: "Turkish Hammam",
+    heading: "Foam Clouds",
     description:
-      "Entry for two up to 3 hours • 30-minute hammam massage for each person • Free access to sauna and jacuzzi • Coffee & cake corner • Authentic traditional hammam experience.",
-    price: "₪1,500 — Turkish Hammam",
+      "Free use of all private spa facilities • Dry sauna & Jacuzzi • Traditional Turkish Hammam • 45-minute relaxing couples massage • Hammam kit (soaps & aromatic sponges) • Free coffee & tea corner.",
+    price: "₪1,180 per couple",
     cta: "Book Now",
   },
 };

@@ -1,169 +1,148 @@
 [
   {
-    "id": "massage-50",
-    "category": "massage",
-    "durationMin": 180,
-    "priceAmount": 450,
+    "id": "bff-moments",
+    "category": "group",
+    "durationMin": 120,
+    "priceAmount": 400,
     "priceCurrency": "ILS",
     "translations": {
       "en": {
-        "title": "50-Minute Massage",
-        "description": "A pampering 50-minute massage in a designed, intimate private room.",
-        "typeLabel": "Massage 50 min",
-        "priceDisplay": "By choice"
+        "title": "BFF Moments – Private Spa for Friends",
+        "description": "Private use of Hammam, Sauna & Jacuzzi • 45-minute professional massage • Hammam treatment kit • Coffee & tea refreshments • 2 Hours: ₪400 per participant • 3 Hours: ₪500 per participant • Minimum 3 participants • Ages 18+ • Weekend & holiday surcharge: ₪50 • Villa guests receive 10% discount • Reservations: 050-6290202.",
+        "typeLabel": "BFF",
+        "priceDisplay": "₪400/₪500 per participant"
       },
       "he": {
-        "title": "עיסוי 50 דקות",
-        "description": "עיסוי מפנק של 50 דקות בחדר פרטי מעוצב ואינטימי.",
-        "typeLabel": "עיסוי",
-        "priceDisplay": "לפי בחירה"
+        "title": "רגעי BFF – ספא פרטי לחברות",
+        "description": "שימוש פרטי בחמאם, סאונה וג'קוזי • עיסוי מקצועי 45 דקות • ערכת חמאם לטיפול עצמי • כיבוד קפה ותה • 2 שעות: ₪400 למשתתפת • 3 שעות: ₪500 למשתתפת • מינימום 3 משתתפות • כניסה מגיל 18 • תוספת סוף שבוע וחג: ₪50 • אורחי הוילה זכאים ל-10% הנחה • להזמנות: 050-6290202.",
+        "typeLabel": "BFF",
+        "priceDisplay": "₪400/₪500 למשתתפת"
       }
     }
   },
   {
-    "id": "hammam-30",
-    "category": "massage",
-    "durationMin": 180,
-    "priceAmount": 320,
+    "id": "couple-foam-clouds",
+    "category": "group",
+    "durationMin": 120,
+    "priceAmount": 1180,
     "priceCurrency": "ILS",
     "translations": {
       "en": {
-        "title": "Hammam Massage · 30 min",
-        "description": "Traditional massage on the hot marble slab inside the Turkish hammam — a unique authentic experience.",
-        "typeLabel": "Hammam 30 min",
-        "priceDisplay": "By choice"
+        "title": "Foam Clouds – Couple Package",
+        "description": "Free use of all private spa facilities • Dry sauna & Jacuzzi • Traditional Turkish Hammam • 45-minute relaxing couples massage • Hammam kit (soaps & aromatic sponges) • Free coffee & tea corner • Ages 18+ • Weekend & holiday surcharge: ₪50 • Villa guests receive 10% discount • Reservations: 050-6290202.",
+        "typeLabel": "Couple",
+        "priceDisplay": "₪1,180 per couple"
       },
       "he": {
-        "title": "עיסוי חמאם · 30 דק׳",
-        "description": "עיסוי מסורתי על השיש החם בתוך החמאם הטורקי — חוויה אותנטית ומיוחדת.",
-        "typeLabel": "חמאם",
-        "priceDisplay": "לפי בחירה"
+        "title": "ענני קצף – חבילת זוג",
+        "description": "שימוש חופשי בכל מתקני הספא הפרטיים • סאונה יבשה וג'קוזי • חמאם טורקי מסורתי • עיסוי זוגי מרגיע 45 דקות • ערכת חמאם (סבונים וספוגים ארומטיים) • פינת קפה ותה חופשית • כניסה מגיל 18 • תוספת סוף שבוע וחג: ₪50 • אורחי הוילה זכאים ל-10% הנחה • להזמנות: 050-6290202.",
+        "typeLabel": "זוג",
+        "priceDisplay": "₪1,180 לזוג"
       }
     }
   },
   {
-    "id": "medical-massage",
-    "category": "massage",
-    "durationMin": 180,
-    "priceAmount": 480,
-    "priceCurrency": "ILS",
-    "translations": {
-      "en": {
-        "title": "Medical Massage",
-        "description": "Professional therapeutic massage tailored for pain and tension relief, performed by a certified therapist.",
-        "typeLabel": "Medical",
-        "priceDisplay": "By choice"
-      },
-      "he": {
-        "title": "עיסוי רפואי",
-        "description": "עיסוי טיפולי מקצועי להקלה על כאבים ולשחרור מתחים, מבוצע על ידי מטפל מוסמך.",
-        "typeLabel": "רפואי",
-        "priceDisplay": "לפי בחירה"
-      }
-    }
-  },
-  {
-    "id": "swedish-thai-50",
-    "category": "massage",
-    "durationMin": 180,
-    "priceAmount": 460,
-    "priceCurrency": "ILS",
-    "translations": {
-      "en": {
-        "title": "Swedish / Thai · 50 min",
-        "description": "Choose between a classic Swedish massage or a traditional Thai massage, 50-minute session.",
-        "typeLabel": "Swedish / Thai",
-        "priceDisplay": "By choice"
-      },
-      "he": {
-        "title": "שוודי / תאילנדי · 50 דק׳",
-        "description": "בחרו בין עיסוי שוודי קלאסי לבין עיסוי תאילנדי מסורתי, במפגש של 50 דקות.",
-        "typeLabel": "שוודי / תאילנדי",
-        "priceDisplay": "לפי בחירה"
-      }
-    }
-  },
-  {
-    "id": "vip-couple",
+    "id": "couple-silk-touch",
     "category": "group",
     "durationMin": 180,
-    "priceAmount": 1200,
+    "priceAmount": 1550,
     "priceCurrency": "ILS",
     "translations": {
       "en": {
-        "title": "VIP Couple Package",
-        "description": "Entry for two up to 3 hours • 50-minute massage for each • Full access to hammam, sauna & jacuzzi • Coffee & cake corner.",
-        "typeLabel": "VIP",
-        "priceDisplay": "₪1,200 per couple"
+        "title": "Silk Touch – 3-Hour Couple Package",
+        "description": "Fully private spa complex • Exclusive dry sauna, Jacuzzi & Turkish Hammam • 50-minute pampering couples massage • Traditional Hammam self-treatment kit • Rich refreshments, coffee & tea • Ages 18+ • Weekend & holiday surcharge: ₪50 • Villa guests receive 10% discount • Reservations: 050-6290202.",
+        "typeLabel": "Couple",
+        "priceDisplay": "₪1,550 per couple"
       },
       "he": {
-        "title": "חבילת VIP זוגית",
-        "description": "כניסה לשניים עד 3 שעות • עיסוי של 50 דקות לכל אחד בחדר פרטי • גישה חופשית לחמאם, סאונה וג'קוזי • פינת קפה ועוגה.",
-        "typeLabel": "VIP",
-        "priceDisplay": "₪1,200 — זוג VIP"
+        "title": "מגע המשי – חבילת זוג 3 שעות",
+        "description": "מתחם ספא פרטי לחלוטין • סאונה יבשה, ג'קוזי וחמאם טורקי בלעדי • עיסוי זוגי מפנק 50 דקות • ערכת חמאם לטיפול עצמי • כיבוד עשיר, קפה ותה • כניסה מגיל 18 • תוספת סוף שבוע וחג: ₪50 • אורחי הוילה זכאים ל-10% הנחה • להזמנות: 050-6290202.",
+        "typeLabel": "זוג",
+        "priceDisplay": "₪1,550 לזוג"
       }
     }
   },
   {
-    "id": "turkish-hammam",
-    "category": "group",
-    "durationMin": 180,
-    "priceAmount": 1500,
-    "priceCurrency": "ILS",
+    "id": "treatment-sauna-jacuzzi",
+    "category": "massage",
+    "durationMin": 60,
+    "priceAmount": 160,
+    "priceCurrency": "USD",
     "translations": {
       "en": {
-        "title": "Turkish Hammam Package",
-        "description": "Entry for two up to 3 hours • 30-minute hammam massage for each person • Free access to sauna and jacuzzi • Coffee & cake corner • Authentic traditional hammam experience.",
-        "typeLabel": "Hammam",
-        "priceDisplay": "₪1,500 — Turkish Hammam"
+        "title": "Dry Sauna & Jacuzzi",
+        "description": "60 minutes – $160 • 90 minutes – $210",
+        "typeLabel": "Treatment",
+        "priceDisplay": "$160 / $210"
       },
       "he": {
-        "title": "חמאם טורקי",
-        "description": "כניסה לשניים עד 3 שעות • עיסוי של 30 דקות לכל אחד על השיש בחמאם • גישה חופשית לסאונה ולג'קוזי • פינת קפה ועוגה • חוויה אותנטית של חמאם מסורתי.",
-        "typeLabel": "חמאם",
-        "priceDisplay": "₪1,500 — חמאם טורקי"
+        "title": "סאונה יבשה וג'קוזי",
+        "description": "60 דקות – $160 • 90 דקות – $210",
+        "typeLabel": "טיפול",
+        "priceDisplay": "$160 / $210"
       }
     }
   },
   {
-    "id": "spa-day",
-    "category": "group",
-    "durationMin": 180,
-    "priceAmount": 1000,
-    "priceCurrency": "ILS",
+    "id": "treatment-hammam",
+    "category": "massage",
+    "durationMin": 60,
+    "priceAmount": 160,
+    "priceCurrency": "USD",
     "translations": {
       "en": {
-        "title": "Spa Day",
-        "description": "Entry for two up to 3 hours • Full access to hammam, sauna & jacuzzi • Lounge area • Coffee & cake corner • No massage included.",
-        "typeLabel": "Spa Day",
-        "priceDisplay": "₪1,000 — Spa Day"
+        "title": "Traditional Turkish Hammam",
+        "description": "60 minutes – $160 • 90 minutes – $210",
+        "typeLabel": "Treatment",
+        "priceDisplay": "$160 / $210"
       },
       "he": {
-        "title": "יום ספא",
-        "description": "כניסה לשניים עד 3 שעות • גישה חופשית לחמאם, לסאונה ולג'קוזי • לאונג' מעוצב ונעים • פינת קפה ועוגה • ללא עיסוי כלול.",
-        "typeLabel": "יום ספא",
-        "priceDisplay": "₪1,000 — יום ספא"
+        "title": "חמאם טורקי מסורתי",
+        "description": "60 דקות – $160 • 90 דקות – $210",
+        "typeLabel": "טיפול",
+        "priceDisplay": "$160 / $210"
       }
     }
   },
   {
-    "id": "group-day",
-    "category": "group",
-    "durationMin": 180,
-    "priceAmount": 300,
-    "priceCurrency": "ILS",
+    "id": "treatment-massage",
+    "category": "massage",
+    "durationMin": 60,
+    "priceAmount": 160,
+    "priceCurrency": "USD",
     "translations": {
       "en": {
-        "title": "Group Day",
-        "description": "Entry for a group of up to 6 people for 3 hours • Free access to the entire complex • Coffee & cake corner.",
-        "typeLabel": "Group",
-        "priceDisplay": "₪300 per person"
+        "title": "Massage",
+        "description": "60 minutes – $160 • 90 minutes – $210",
+        "typeLabel": "Treatment",
+        "priceDisplay": "$160 / $210"
       },
       "he": {
-        "title": "יום קבוצתי",
-        "description": "כניסה לקבוצה של עד 6 אנשים ל־3 שעות • גישה חופשית לכל המתחם: חמאם, סאונה, ג'קוזי • אזורי לאונג' • פינת קפה ועוגה.",
-        "typeLabel": "קבוצה",
-        "priceDisplay": "₪300 לאדם"
+        "title": "עיסוי",
+        "description": "60 דקות – $160 • 90 דקות – $210",
+        "typeLabel": "טיפול",
+        "priceDisplay": "$160 / $210"
+      }
+    }
+  },
+  {
+    "id": "treatment-pampering",
+    "category": "massage",
+    "durationMin": 60,
+    "priceAmount": 160,
+    "priceCurrency": "USD",
+    "translations": {
+      "en": {
+        "title": "Pampering Options",
+        "description": "60 minutes – $160 • 90 minutes – $210",
+        "typeLabel": "Treatment",
+        "priceDisplay": "$160 / $210"
+      },
+      "he": {
+        "title": "אפשרויות פינוק",
+        "description": "60 דקות – $160 • 90 דקות – $210",
+        "typeLabel": "טיפול",
+        "priceDisplay": "$160 / $210"
       }
     }
   },

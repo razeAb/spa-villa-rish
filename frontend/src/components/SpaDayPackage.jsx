@@ -4,21 +4,23 @@ import { Link } from "react-router-dom";
 import { useLocale } from "../context/LocaleContext.jsx";
 import { useServices } from "../hooks/useServices";
 
-const SPA_DAY_SLUG = "spa-day";
+const SPA_DAY_SLUG = "couple-silk-touch";
 
 const COPY = {
   he: {
     kicker: "חבילות +",
-    heading: "יום ספא",
-    description: "כניסה לשניים עד 3 שעות • גישה חופשית לחמאם, לסאונה ולג'קוזי • לאונג' מעוצב ונעים • פינת קפה ועוגה • ללא עיסוי כלול.",
-    price: "₪1,000 — יום ספא",
+    heading: "מגע המשי",
+    description:
+      "מתחם ספא פרטי לחלוטין • סאונה יבשה, ג'קוזי וחמאם טורקי בלעדי • עיסוי זוגי מפנק 50 דקות • ערכת חמאם לטיפול עצמי • כיבוד עשיר, קפה ותה.",
+    price: "₪1,550 לזוג",
     cta: "שריין מקום",
   },
   en: {
     kicker: "Packages +",
-    heading: "Spa Day",
-    description: "Entry for two up to 3 hours • Full access to hammam, sauna & jacuzzi • Lounge area • Coffee & cake corner • No massage included.",
-    price: "₪1,000 — Spa Day",
+    heading: "Silk Touch",
+    description:
+      "Fully private spa complex • Exclusive dry sauna, Jacuzzi & Turkish Hammam • 50-minute pampering couples massage • Traditional Hammam self-treatment kit • Rich refreshments, coffee & tea.",
+    price: "₪1,550 per couple",
     cta: "Book Now",
   },
 };
