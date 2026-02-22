@@ -10,12 +10,15 @@ const COPY = {
   he: {
     kicker: "חבילות +",
     heading: "חמאם טורקי",
+    description: "כניסה לשניים עד 3 שעות • עיסוי של 30 דקות לכל אחד על השיש בחמאם • גישה חופשית לסאונה ולג'קוזי • פינת קפה ועוגה • חוויה אותנטית של חמאם מסורתי.",
     price: "₪1,500 — חמאם טורקי",
     cta: "שריין מקום",
   },
   en: {
     kicker: "Packages +",
     heading: "Turkish Hammam",
+    description:
+      "Entry for two up to 3 hours • 30-minute hammam massage for each person • Free access to sauna and jacuzzi • Coffee & cake corner • Authentic traditional hammam experience.",
     price: "₪1,500 — Turkish Hammam",
     cta: "Book Now",
   },
@@ -34,7 +37,7 @@ export default function TurkishHammamPackage() {
   const isHebrew = locale === "he";
   const copy = COPY[locale];
   const service = services.find((svc) => svc.slug === HAMMAM_SLUG);
-  const description = service?.translations?.[locale]?.description || service?.description || "";
+  const description = service?.translations?.[locale]?.description || service?.description || copy.description || "";
 
   return (
     <motion.section
@@ -64,7 +67,7 @@ export default function TurkishHammamPackage() {
           <h2 className="font-serif text-[42px] leading-[1.1] sm:text-[56px]">{copy.heading}</h2>
 
           {description ? (
-            <p className="mt-6 text-base leading-relaxed text-white/85 whitespace-pre-line">{description}</p>
+            <p className="mt-6 text-lg leading-relaxed text-white/85 whitespace-pre-line">{description}</p>
           ) : null}
 
           <p className="mt-8 text-lg italic">{copy.price}</p>

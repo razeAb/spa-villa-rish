@@ -10,12 +10,14 @@ const COPY = {
   he: {
     kicker: "חבילות +",
     heading: "יום ספא",
+    description: "כניסה לשניים עד 3 שעות • גישה חופשית לחמאם, לסאונה ולג'קוזי • לאונג' מעוצב ונעים • פינת קפה ועוגה • ללא עיסוי כלול.",
     price: "₪1,000 — יום ספא",
     cta: "שריין מקום",
   },
   en: {
     kicker: "Packages +",
     heading: "Spa Day",
+    description: "Entry for two up to 3 hours • Full access to hammam, sauna & jacuzzi • Lounge area • Coffee & cake corner • No massage included.",
     price: "₪1,000 — Spa Day",
     cta: "Book Now",
   },
@@ -34,7 +36,7 @@ export default function SpaDayPackage() {
   const isHebrew = locale === "he";
   const copy = COPY[locale];
   const service = services.find((svc) => svc.slug === SPA_DAY_SLUG);
-  const description = service?.translations?.[locale]?.description || service?.description || "";
+  const description = service?.translations?.[locale]?.description || service?.description || copy.description || "";
 
   return (
     <motion.section
@@ -64,7 +66,7 @@ export default function SpaDayPackage() {
           <h2 className="font-serif text-[42px] leading-[1.1] sm:text-[56px]">{copy.heading}</h2>
 
           {description ? (
-            <p className="mt-6 text-base leading-relaxed text-white/85 whitespace-pre-line">{description}</p>
+            <p className="mt-6 text-lg leading-relaxed text-white/85 whitespace-pre-line">{description}</p>
           ) : null}
 
           <p className="mt-8 text-lg italic">{copy.price}</p>

@@ -10,12 +10,14 @@ const COPY = {
   he: {
     kicker: "חבילות +",
     heading: "חבילת VIP זוגית",
+    description: "כניסה לשניים עד 3 שעות • עיסוי של 50 דקות לכל אחד בחדר פרטי • גישה חופשית לחמאם, סאונה וג'קוזי • פינת קפה ועוגה.",
     price: "₪1,200 — זוג VIP",
     cta: "שריין מקום",
   },
   en: {
     kicker: "Packages +",
     heading: "VIP Couple Package",
+    description: "Entry for two up to 3 hours • 50-minute massage for each • Full access to hammam, sauna & jacuzzi • Coffee & cake corner.",
     price: "₪1,200 — VIP Couple",
     cta: "Book Now",
   },
@@ -34,7 +36,7 @@ export default function VipPackage() {
   const isHebrew = locale === "he";
   const copy = COPY[locale];
   const service = services.find((svc) => svc.slug === VIP_SLUG);
-  const description = service?.translations?.[locale]?.description || service?.description || "";
+  const description = service?.translations?.[locale]?.description || service?.description || copy.description || "";
 
   return (
     <motion.section
@@ -64,7 +66,7 @@ export default function VipPackage() {
           <h2 className="font-serif text-[42px] leading-[1.1] sm:text-[56px]">{copy.heading}</h2>
 
           {description ? (
-            <p className="mt-6 text-base leading-relaxed text-white/85 whitespace-pre-line">{description}</p>
+            <p className="mt-6 text-lg leading-relaxed text-white/85 whitespace-pre-line">{description}</p>
           ) : null}
 
           <p className="mt-8 text-lg italic">{copy.price}</p>
