@@ -48,7 +48,7 @@ export default function VillaStayPage() {
       data-section="villa"
       id="villa-stay"
       className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-cover bg-center bg-no-repeat text-white"
-      style={{ backgroundImage: "url('/spa%20photos/img2.jpg')", scrollMarginTop: "120px" }}
+      style={{ backgroundImage: "url('/spa-photos/img2.jpg')", scrollMarginTop: "120px" }}
     >
       {/* Overlays */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />

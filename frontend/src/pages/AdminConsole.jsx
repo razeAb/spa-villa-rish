@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, getAuthToken, setAuthToken } from "../api/client";
 
@@ -102,6 +102,20 @@ const formatMoney = (amount, currency = "ILS") => {
 };
 
 const getServiceTitle = (svc, lang) => svc?.translations?.[lang]?.title || svc?.title || svc?.translations?.en?.title || "";
+const getBookingSearchText = (booking, lang) => {
+  const parts = [
+    booking.customerName,
+    booking.phone,
+    booking.customerEmail,
+    getServiceTitle(booking.serviceId, lang),
+  ];
+  return parts.filter(Boolean).join(" ").toLowerCase();
+};
+
+const isSameLocalDay = (dateA, dateB) =>
+  dateA.getFullYear() === dateB.getFullYear() &&
+  dateA.getMonth() === dateB.getMonth() &&
+  dateA.getDate() === dateB.getDate();
 
 const normalizeOpeningHours = (hours = []) =>
   Array.from({ length: 7 }).map((_, dow) => {
@@ -124,6 +138,9 @@ export default function AdminConsole() {
   const [settingsError, setSettingsError] = useState("");
   const [settingsMessage, setSettingsMessage] = useState("");
   const [settingsSaving, setSettingsSaving] = useState(false);
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [showTodayOnly, setShowTodayOnly] = useState(false);
 
   const loadBookings = useCallback(async () => {
     if (!authed) return;
@@ -242,6 +259,41 @@ export default function AdminConsole() {
       }
     };
 
+  const filteredBookings = useMemo(() => {
+    if (!bookings.length) return [];
+    const normalizedQuery = query.trim().toLowerCase();
+    const today = new Date();
+    return bookings.filter((booking) => {
+      if (statusFilter !== "all" && booking.status !== statusFilter) return false;
+      if (showTodayOnly) {
+        if (!booking.startUtc) return false;
+        const bookingDate = new Date(booking.startUtc);
+        if (!isSameLocalDay(bookingDate, today)) return false;
+      }
+      if (!normalizedQuery) return true;
+      return getBookingSearchText(booking, lang).includes(normalizedQuery);
+    });
+  }, [bookings, lang, query, showTodayOnly, statusFilter]);
+
+  const stats = useMemo(() => {
+    if (!bookings.length) {
+      return { todayCount: 0, pendingCount: 0, revenueTotal: 0 };
+    }
+    const today = new Date();
+    let todayCount = 0;
+    let pendingCount = 0;
+    let revenueTotal = 0;
+    for (const booking of bookings) {
+      if (booking.status === "pending") pendingCount += 1;
+      if (booking.totalAmount) revenueTotal += booking.totalAmount;
+      if (booking.startUtc) {
+        const bookingDate = new Date(booking.startUtc);
+        if (isSameLocalDay(bookingDate, today)) todayCount += 1;
+      }
+    }
+    return { todayCount, pendingCount, revenueTotal };
+  }, [bookings]);
+
   return (
     <div className="min-h-screen bg-black text-white" dir={lang === "he" ? "rtl" : "ltr"}>
       <header className="border-b border-white/10 bg-black/70 px-6 py-4 backdrop-blur">
@@ -325,6 +377,65 @@ export default function AdminConsole() {
 
             {error ? <p className="text-sm text-red-400">{error}</p> : null}
 
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-wide text-white/60">{lang === "he" ? "היום" : "Today"}</p>
+                <p className="mt-2 text-2xl font-semibold">{stats.todayCount}</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-wide text-white/60">{lang === "he" ? "ממתינים" : "Pending"}</p>
+                <p className="mt-2 text-2xl font-semibold">{stats.pendingCount}</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-wide text-white/60">{lang === "he" ? "סה\"כ הכנסות" : "Total revenue"}</p>
+                <p className="mt-2 text-2xl font-semibold">{formatMoney(stats.revenueTotal)}</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <input
+                type="text"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={lang === "he" ? "חיפוש לפי שם, טלפון או שירות" : "Search by name, phone, or service"}
+                className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white sm:max-w-md"
+              />
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white"
+              >
+                <option value="all">{lang === "he" ? "כל הסטטוסים" : "All statuses"}</option>
+                {STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {T[lang].statusLabels[status] || status}
+                  </option>
+                ))}
+              </select>
+              <label className="flex items-center gap-2 text-sm text-white/70">
+                <input
+                  type="checkbox"
+                  checked={showTodayOnly}
+                  onChange={(event) => setShowTodayOnly(event.target.checked)}
+                  className="h-4 w-4 rounded border-white/30 bg-black/40"
+                />
+                {lang === "he" ? "הצג רק היום" : "Today only"}
+              </label>
+              {(query || statusFilter !== "all" || showTodayOnly) ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery("");
+                    setStatusFilter("all");
+                    setShowTodayOnly(false);
+                  }}
+                  className="text-xs text-white/60 hover:text-white"
+                >
+                  {lang === "he" ? "נקה מסננים" : "Clear filters"}
+                </button>
+              ) : null}
+            </div>
+
             <div className="overflow-x-auto rounded-2xl border border-white/10">
               <table className="min-w-full divide-y divide-white/10 text-sm">
                 <thead className="bg-white/5">
@@ -337,7 +448,7 @@ export default function AdminConsole() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                    {bookings.map((booking) => (
+                    {filteredBookings.map((booking) => (
                       <tr key={booking._id} className="bg-black/40">
                         <td className="px-4 py-3">
                           <p className="font-medium text-white">{booking.customerName}</p>
@@ -361,27 +472,51 @@ export default function AdminConsole() {
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <select
-                          value={booking.status}
-                          onChange={(event) => handleStatusChange(booking._id, event.target.value)}
-                          className="rounded-md border border-white/10 bg-black/60 px-2 py-1 text-xs uppercase tracking-wide text-white"
-                        >
-                          {STATUSES.map((status) => {
-                            const label = T[lang].statusLabels[status] || status;
-                            return (
-                              <option key={status} value={status}>
-                                {label}
-                              </option>
-                            );
-                          })}
-                        </select>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <select
+                            value={booking.status}
+                            onChange={(event) => handleStatusChange(booking._id, event.target.value)}
+                            className="rounded-md border border-white/10 bg-black/60 px-2 py-1 text-xs uppercase tracking-wide text-white"
+                          >
+                            {STATUSES.map((status) => {
+                              const label = T[lang].statusLabels[status] || status;
+                              return (
+                                <option key={status} value={status}>
+                                  {label}
+                                </option>
+                              );
+                            })}
+                          </select>
+                          {booking.status !== "confirmed" ? (
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(booking._id, "confirmed")}
+                              className="rounded-md border border-emerald-400/30 bg-emerald-500/10 px-2 py-1 text-[10px] uppercase tracking-wide text-emerald-200 hover:bg-emerald-500/20"
+                            >
+                              {lang === "he" ? "אשר" : "Confirm"}
+                            </button>
+                          ) : null}
+                          {booking.status !== "canceled" ? (
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(booking._id, "canceled")}
+                              className="rounded-md border border-red-400/30 bg-red-500/10 px-2 py-1 text-[10px] uppercase tracking-wide text-red-200 hover:bg-red-500/20"
+                            >
+                              {lang === "he" ? "בטל" : "Cancel"}
+                            </button>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   ))}
-                  {!bookings.length && !loading ? (
+                  {!filteredBookings.length && !loading ? (
                     <tr>
-                      <td colSpan={4} className="px-4 py-6 text-center text-white/60">
-                        {T[lang].noBookings}
+                      <td colSpan={5} className="px-4 py-6 text-center text-white/60">
+                        {query || statusFilter !== "all" || showTodayOnly
+                          ? lang === "he"
+                            ? "אין תוצאות למסננים שבחרת."
+                            : "No results for the selected filters."
+                          : T[lang].noBookings}
                       </td>
                     </tr>
                   ) : null}

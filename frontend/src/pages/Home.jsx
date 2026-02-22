@@ -3,7 +3,7 @@ import HeroLanding from "../components/HeroLanding";
 import VipPackage from "../components/VipPackage";
 import TurkishHammamPackage from "../components/TurkishHammamPackage";
 import SpaDayPackage from "../components/SpaDayPackage";
-import ServicesPage from "../components/ServicesPage";
+import SpaPhotosCarousel from "../components/SpaPhotosCarousel";
 import VillaStayPage from "../components/VillaStayPage";
 
 export default function Home() {
@@ -19,7 +19,7 @@ export default function Home() {
       <VipPackage />
       <TurkishHammamPackage />
       <SpaDayPackage />
-      <ServicesPage />
+      <SpaPhotosCarousel />
       <VillaStayPage />
     </motion.div>
   );
