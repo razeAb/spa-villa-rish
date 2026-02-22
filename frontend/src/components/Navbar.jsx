@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { FaChevronDown } from "react-icons/fa";
 import { useLocale } from "../context/LocaleContext.jsx";
 
@@ -15,6 +16,7 @@ export default function Navbar() {
   const isHebrew = locale === "he";
 
   const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -27,6 +29,19 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    }
+
+    if (menuOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [menuOpen]);
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 ">
@@ -75,18 +90,73 @@ export default function Navbar() {
 
         {/* Right: Menu */}
         <div className="flex items-center gap-3 justify-self-end">
-          <a
-            href="#menu"
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
             className={`text-sm font-light text-white/80 transition hover:text-white ${isHebrew ? "" : "uppercase tracking-[0.4em]"}`}
+            aria-expanded={menuOpen}
+            aria-controls="site-side-menu"
           >
             {isHebrew ? "תפריט" : "Menu"}
-          </a>
+          </button>
           <div className="hidden flex-col gap-[3px] sm:flex">
             <span className="block h-[2px] w-4 bg-emerald-300/80" />
             <span className="ml-auto block h-[2px] w-3 bg-emerald-300/60" />
           </div>
         </div>
       </div>
+
+      {menuOpen ? (
+        <div className="fixed inset-0 z-50">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/60"
+            aria-label="Close menu"
+            onClick={() => setMenuOpen(false)}
+          />
+          <aside
+            id="site-side-menu"
+            className={`absolute inset-y-0 w-[280px] bg-black/95 px-6 py-6 text-white shadow-2xl ${
+              isHebrew ? "left-0 text-right" : "right-0 text-left"
+            }`}
+            dir={isHebrew ? "rtl" : "ltr"}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs uppercase tracking-[0.35em] text-white/60">{isHebrew ? "תפריט" : "Menu"}</span>
+              <button type="button" className="text-white/70 hover:text-white" onClick={() => setMenuOpen(false)}>
+                X
+              </button>
+            </div>
+
+            <nav className="mt-6 space-y-2">
+              {PACKAGE_LINKS.map((pkg) => (
+                <a
+                  key={pkg.id}
+                  href={`#${pkg.id}`}
+                  onClick={() => setMenuOpen(false)}
+                  className={`block rounded-md px-2 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white ${
+                    isHebrew ? "" : "uppercase tracking-[0.25em]"
+                  }`}
+                >
+                  {pkg.label[locale]}
+                </a>
+              ))}
+            </nav>
+
+            <div className="mt-8 border-t border-white/10 pt-4">
+              <Link
+                to="/admin"
+                className={`inline-flex items-center rounded-full border border-white/30 px-4 py-2 text-xs text-white/80 transition hover:bg-white/10 ${
+                  isHebrew ? "" : "uppercase tracking-[0.3em]"
+                }`}
+                onClick={() => setMenuOpen(false)}
+              >
+                {isHebrew ? "כניסת אדמין" : "Admin login"}
+              </Link>
+            </div>
+          </aside>
+        </div>
+      ) : null}
     </header>
   );
 }
