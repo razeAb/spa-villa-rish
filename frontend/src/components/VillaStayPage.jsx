@@ -27,16 +27,22 @@ export default function VillaStayPage() {
     ? {
         eyebrow: "חבילות +",
         heading: "לינה בוילה",
-        description:
-          "לינת לילה לזוג בווילה ריש המפוארת (על בסיס זמינות) • הווילה מדורגת 10 בבוקינג • בריכה מחוממת פרטית • פינת ברביקיו • מטבח מאובזר • גן פרטי • חדרים מעוצבים • המשך מושלם אחרי יום הספא.",
+        description: `להתעורר בתוך שלווה
+השלימו את חוויית הספא עם לינה בווילה ריש – הציון 10 ב-Booking מבטיח לכם איכות ללא פשרות.
+טבלו בבריכה המחוממת הפרטית, תיהנו מארוחה בגינה המעוצבת והירגעו בחדרים שנוצרו למנוחה אמיתית.
+מתקנים: בריכה מחוממת, מטבח מלא, חצר פרטית וחדרי שינה יוקרתיים.
+מחיר לזוג: 1,300 ₪ ללילה`,
         price: "₪1,300 — ללילה (לזוג)",
         cta: "שלחו וואטסאפ",
       }
     : {
         eyebrow: "Packages +",
         heading: "Villa Overnight Stay",
-        description:
-          "Overnight stay for two at the luxurious Villa Rish (subject to availability) • Rated 10 on Booking • Private heated pool • BBQ area • Fully equipped kitchen • Private garden • Stylish rooms • Perfect continuation after your spa day.",
+        description: `Wake up in serenity.
+Complete your spa experience with an overnight stay at Villa Rish — a perfect 10 on Booking for uncompromising quality.
+Soak in the private heated pool, enjoy a meal in the designed garden, and unwind in rooms made for real rest.
+Amenities: heated pool, full kitchen, private yard, and luxury bedrooms.
+Price for a couple: ₪1,300 per night.`,
         price: "₪1,300 — per night (for two)",
         cta: "WhatsApp Us",
       };
@@ -48,7 +54,7 @@ export default function VillaStayPage() {
       data-section="villa"
       id="villa-stay"
       className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-cover bg-center bg-no-repeat text-white"
-      style={{ backgroundImage: "url('/spa-photos/img2.jpg')", scrollMarginTop: "120px" }}
+      style={{ backgroundImage: "url('/spa-photos/villa-photo.jpeg')", scrollMarginTop: "120px" }}
     >
       {/* Overlays */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
@@ -69,9 +75,7 @@ export default function VillaStayPage() {
 
           <h1 className="font-serif text-[42px] leading-[1.1] sm:text-[56px]">{copy.heading}</h1>
 
-          {description ? (
-            <p className="mt-6 text-lg leading-relaxed text-white/85 whitespace-pre-line">{description}</p>
-          ) : null}
+          {description ? <p className="mt-6 text-lg leading-relaxed text-white/85 whitespace-pre-line">{description}</p> : null}
 
           <p className="mt-8 text-lg italic">{copy.price}</p>
 

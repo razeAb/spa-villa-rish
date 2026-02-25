@@ -12,7 +12,6 @@ const IMAGE_NAMES = [
   "DSC_6891.jpg",
   "DSC_6916.jpg",
   "DSC_6962.jpg",
-  "img2.jpg",
 ];
 
 const sectionMotion = {
@@ -26,10 +25,7 @@ export default function SpaPhotosCarousel() {
   const { locale } = useLocale();
   const isHebrew = locale === "he";
   const [index, setIndex] = useState(0);
-  const images = useMemo(
-    () => IMAGE_NAMES.map((name) => `/spa-photos/${encodeURIComponent(name)}`),
-    []
-  );
+  const images = useMemo(() => IMAGE_NAMES.map((name) => `/spa-photos/${encodeURIComponent(name)}`), []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -66,9 +62,7 @@ export default function SpaPhotosCarousel() {
 
       <div className="relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col px-4 py-16 sm:px-6 md:py-28">
         <div className={`mb-8 ${isHebrew ? "text-right" : "text-left"}`} dir={isHebrew ? "rtl" : "ltr"}>
-          <p className={`text-xs text-white/70 ${isHebrew ? "tracking-[0.2em]" : "uppercase tracking-[0.35em]"}`}>
-            {copy.kicker}
-          </p>
+          <p className={`text-xs text-white/70 ${isHebrew ? "tracking-[0.2em]" : "uppercase tracking-[0.35em]"}`}>{copy.kicker}</p>
           <h2 className="mt-3 font-serif text-4xl sm:text-5xl">{copy.heading}</h2>
           <p className="mt-3 max-w-2xl text-white/70">{copy.desc}</p>
         </div>
@@ -124,7 +118,6 @@ export default function SpaPhotosCarousel() {
             ))}
           </div>
         </div>
-
       </div>
     </motion.section>
   );
