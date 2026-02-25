@@ -68,7 +68,9 @@ export default function SpaDayPackage() {
           <h2 className="font-serif text-[42px] leading-[1.1] sm:text-[56px]">{copy.heading}</h2>
 
           {description ? (
-            <p className="mt-6 text-lg leading-relaxed text-white/85 whitespace-pre-line">{description}</p>
+            <p className="mt-6 text-lg leading-relaxed text-white/90 whitespace-pre-line drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
+              {description}
+            </p>
           ) : null}
 
           <p className="mt-8 text-lg italic">{copy.price}</p>

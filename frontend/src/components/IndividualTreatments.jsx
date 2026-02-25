@@ -72,11 +72,11 @@ function TreatmentCard({ item, isHebrew, priceLabel, ctaLabel }) {
         ) : null}
       </div>
 
-      <p className="text-white/85">{item.description}</p>
+      <p className="text-white/85 whitespace-pre-line">{item.description}</p>
 
       <div className={`mt-5 flex items-center justify-between gap-2 ${isHebrew ? "flex-row-reverse" : ""}`}>
-        <span className="text-sm text-white/80">{priceLabel}</span>
         <span className="text-lg italic">{item.priceDisplay}</span>
+        <span className="text-sm text-white/80">{priceLabel}</span>
       </div>
 
       <Link

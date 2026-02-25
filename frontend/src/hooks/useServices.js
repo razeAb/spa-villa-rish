@@ -10,9 +10,10 @@ export const useServices = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (cachedServices) return;
     let alive = true;
-    setLoading(true);
+    if (!cachedServices) {
+      setLoading(true);
+    }
     const request = inflightRequest || api.listServices();
     inflightRequest = request;
     request
