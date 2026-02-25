@@ -41,6 +41,11 @@ const T = {
       done: "בוצע",
       canceled: "בוטל",
     },
+    viewCard: "פרטי ויזה",
+    hideCard: "הסתר פרטים",
+    cardNumber: "כרטיס",
+    expiry: "תוקף",
+    cvc: "CVV",
     dow: ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"],
   },
   en: {
@@ -81,6 +86,11 @@ const T = {
       done: "done",
       canceled: "canceled",
     },
+    viewCard: "Visa details",
+    hideCard: "Hide details",
+    cardNumber: "Card",
+    expiry: "Expiry",
+    cvc: "CVV",
     dow: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
   },
 };
@@ -141,6 +151,7 @@ export default function AdminConsole() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showTodayOnly, setShowTodayOnly] = useState(false);
+  const [openPaymentBookingId, setOpenPaymentBookingId] = useState(null);
 
   const loadBookings = useCallback(async () => {
     if (!authed) return;
@@ -264,6 +275,7 @@ export default function AdminConsole() {
     const normalizedQuery = query.trim().toLowerCase();
     const today = new Date();
     return bookings.filter((booking) => {
+      if (booking.status === "done") return false;
       if (statusFilter !== "all" && booking.status !== statusFilter) return false;
       if (showTodayOnly) {
         if (!booking.startUtc) return false;
@@ -284,6 +296,7 @@ export default function AdminConsole() {
     let pendingCount = 0;
     let revenueTotal = 0;
     for (const booking of bookings) {
+      if (booking.status === "done") continue;
       if (booking.status === "pending") pendingCount += 1;
       if (booking.totalAmount) revenueTotal += booking.totalAmount;
       if (booking.startUtc) {
@@ -302,6 +315,9 @@ export default function AdminConsole() {
             <div className="flex items-center gap-3 text-sm text-white/70">
               <Link to="/admin/calendar" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
                 {T[lang].calendar}
+              </Link>
+              <Link to="/admin/history" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
+                {lang === "he" ? "היסטוריה" : "History"}
               </Link>
               <Link to="/admin/services" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
                 {T[lang].services}
@@ -448,7 +464,12 @@ export default function AdminConsole() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                    {filteredBookings.map((booking) => (
+                    {filteredBookings.map((booking) => {
+                      const payment = booking.paymentId;
+                      const maskedCard = payment?.maskedCard || (payment?.last4 ? `**** **** **** ${payment.last4}` : "");
+                      const hasCardDetails = Boolean(maskedCard || payment?.expiresOn || payment?.cvc);
+                      const isOpen = openPaymentBookingId === booking._id;
+                      return (
                       <tr key={booking._id} className="bg-black/40">
                         <td className="px-4 py-3">
                           <p className="font-medium text-white">{booking.customerName}</p>
@@ -466,6 +487,36 @@ export default function AdminConsole() {
                           <>
                             <p className="font-medium">{formatMoney(booking.totalAmount, booking.currency)}</p>
                             <p className="text-xs uppercase tracking-wide text-white/60">{booking.paymentStatus}</p>
+                            {hasCardDetails ? (
+                              <div className="mt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setOpenPaymentBookingId(isOpen ? null : booking._id)}
+                                  className="text-[10px] uppercase tracking-wide text-white/70 hover:text-white"
+                                >
+                                  {isOpen ? T[lang].hideCard : T[lang].viewCard}
+                                </button>
+                                {isOpen ? (
+                                  <div className="mt-2 space-y-1 text-xs text-white/70">
+                                    {maskedCard ? (
+                                      <p>
+                                        {T[lang].cardNumber}: {maskedCard}
+                                      </p>
+                                    ) : null}
+                                    {payment?.expiresOn ? (
+                                      <p>
+                                        {T[lang].expiry}: {payment.expiresOn}
+                                      </p>
+                                    ) : null}
+                                    {payment?.cvc ? (
+                                      <p>
+                                        {T[lang].cvc}: {payment.cvc}
+                                      </p>
+                                    ) : null}
+                                  </div>
+                                ) : null}
+                              </div>
+                            ) : null}
                           </>
                         ) : (
                           <span className="text-white/60">{T[lang].none}</span>
@@ -487,15 +538,6 @@ export default function AdminConsole() {
                               );
                             })}
                           </select>
-                          {booking.status !== "confirmed" ? (
-                            <button
-                              type="button"
-                              onClick={() => handleStatusChange(booking._id, "confirmed")}
-                              className="rounded-md border border-emerald-400/30 bg-emerald-500/10 px-2 py-1 text-[10px] uppercase tracking-wide text-emerald-200 hover:bg-emerald-500/20"
-                            >
-                              {lang === "he" ? "אשר" : "Confirm"}
-                            </button>
-                          ) : null}
                           {booking.status !== "canceled" ? (
                             <button
                               type="button"
@@ -508,7 +550,8 @@ export default function AdminConsole() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                   {!filteredBookings.length && !loading ? (
                     <tr>
                       <td colSpan={5} className="px-4 py-6 text-center text-white/60">

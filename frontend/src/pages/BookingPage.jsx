@@ -22,11 +22,11 @@ const COPY = {
     slotsLabel: "שעות זמינות",
     noSlots: "אין שעות פנויות ביום הנבחר. נסו תאריך אחר.",
     paymentTitle: "תשלום מאובטח",
-    paymentDesc: "אנא הזינו את פרטי התשלום בשדה המאובטח. הנתונים אינם נשמרים באתר.",
+    paymentDesc: "אנא הזינו את פרטי הוויזה כפיקדון. התשלום בפועל יתבצע בהגעה במועד ההגעה למתחם.",
     cardNumber: "מספר כרטיס",
     expiry: "תוקף (MM/YY)",
     cvc: "CVV",
-    hostedField: "שדה תשלום מאובטח (החליפו בספק התשלומים שלכם)",
+    hostedField: "שדה תשלום מאובטח",
     addOnsTitle: "תוספות",
     addOnsHint: "בחרו תוספות בתשלום נוסף.",
     addOnsNone: "אין תוספות זמינות לחבילה זו.",
@@ -59,7 +59,7 @@ const COPY = {
     slotsLabel: "Available times",
     noSlots: "No slots available for that day. Try another date.",
     paymentTitle: "Secure payment",
-    paymentDesc: "Enter payment details inside the hosted field. Replace this block with your PSP integration.",
+    paymentDesc: "Enter your Visa details as a deposit. The final payment is collected on arrival based on what you ordered.",
     cardNumber: "Card number",
     expiry: "Expiry (MM/YY)",
     cvc: "CVV",
@@ -665,10 +665,10 @@ export default function BookingPage() {
     return (
       <form className="space-y-6" onSubmit={handlePay}>
         <h2 className="text-2xl font-semibold text-white">{copy.paymentTitle}</h2>
-        <p className="text-sm text-white/70">{copy.paymentDesc}</p>
+        <p className="text-mid text-white/70">{copy.paymentDesc}</p>
 
         <div className="rounded-2xl border border-white/15 bg-white/5 p-4 text-sm text-white/80">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">
+          <p className="text-mid uppercase tracking-[0.3em] text-white/50">
             {selectedCatalogService?.title || selectedServiceDoc?.title || ""}
           </p>
           {selectedAddOns.length ? (

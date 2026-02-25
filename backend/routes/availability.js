@@ -42,7 +42,7 @@ router.get("/", async (req, res) => {
       tz: "Asia/Jerusalem",
       serviceDurationMin: service.durationMin,
       bufferMin: settings?.bufferMin ?? 5,
-      slotStepMin: settings?.slotStepMin ?? 15,
+      slotStepMin: settings?.slotStepMin ?? 120,
       openingSpec,
       existingBookingsUtc: existing,
     });

@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 // שעות פתיחה לפי ימים (0=Sunday בישראל? ב-JS 0=Sunday. עדיף לשמור מפורשות)
 const SettingsSchema = new mongoose.Schema(
   {
-    slotStepMin: { type: Number, default: 15 }, // גודל סלוטים להצגה
+    slotStepMin: { type: Number, default: 120 }, // גודל סלוטים להצגה
     bufferMin: { type: Number, default: 5 }, // באפר לפני/אחרי טיפול
     openingHours: [
       {

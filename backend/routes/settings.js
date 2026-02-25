@@ -8,13 +8,13 @@ const router = express.Router();
 const serializeSettings = (doc) => {
   if (!doc) {
     return {
-      slotStepMin: 15,
+      slotStepMin: 120,
       bufferMin: 5,
       openingHours: DEFAULT_OPENING_HOURS,
     };
   }
   return {
-    slotStepMin: doc.slotStepMin ?? 15,
+    slotStepMin: doc.slotStepMin ?? 120,
     bufferMin: doc.bufferMin ?? 5,
     openingHours: Array.isArray(doc.openingHours) && doc.openingHours.length ? doc.openingHours : DEFAULT_OPENING_HOURS,
   };

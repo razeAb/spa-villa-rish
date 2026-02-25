@@ -61,6 +61,26 @@ const guideContent = [
       },
     ],
   },
+  {
+    id: "history",
+    titleEn: "Order History",
+    titleHe: "היסטוריית הזמנות",
+    path: "/admin/history",
+    bullets: [
+      {
+        en: "Shows completed bookings only (status: done).",
+        he: "מציג הזמנות שבוצעו בלבד (סטטוס: בוצע).",
+      },
+      {
+        en: "Use search and Today only to filter quickly.",
+        he: "השתמשו בחיפוש ובמסנן ״הצג רק היום״ לסינון מהיר.",
+      },
+      {
+        en: "Payment details include masked card and expiry (if available).",
+        he: "פרטי תשלום כוללים כרטיס מוסתר ותוקף (אם קיימים).",
+      },
+    ],
+  },
 ];
 
 export default function AdminGuide() {
@@ -78,6 +98,9 @@ export default function AdminGuide() {
             </Link>
             <Link to="/admin/services" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
               Services
+            </Link>
+            <Link to="/admin/history" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
+              History
             </Link>
             <Link to="/" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
               ← Back to site

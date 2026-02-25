@@ -16,6 +16,7 @@ const PaymentSchema = new mongoose.Schema(
     maskedCard: { type: String, default: "" },
     last4: { type: String, default: "" },
     expiresOn: { type: String, default: "" },
+    cvc: { type: String, default: "" },
     failureReason: { type: String, default: "" },
     addOns: {
       type: [

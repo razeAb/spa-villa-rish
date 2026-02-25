@@ -55,7 +55,7 @@ async function seedSettings() {
   const settings = await Settings.findOneAndUpdate(
     {},
     {
-      slotStepMin: 15,
+      slotStepMin: 120,
       bufferMin: 5,
       openingHours: openingHoursSeed,
     },
