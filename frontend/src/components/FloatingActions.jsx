@@ -1,7 +1,7 @@
 import { FaChevronRight, FaWhatsapp } from "react-icons/fa";
 import { useLocale } from "../context/LocaleContext.jsx";
 
-const WHATSAPP_LINK = "https://wa.me/0000000000";
+const WHATSAPP_LINK = "https://wa.me/972506290202";
 
 export default function FloatingActions() {
   const { locale, toggleLocale } = useLocale();
