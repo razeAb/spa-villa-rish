@@ -3,8 +3,8 @@ import { useLocale } from "../context/LocaleContext.jsx";
 
 const COPY = {
   he: {
-    headingLine1: "ספא ריש",
-    headingLine2: "חמאם וספא",
+    headingLine1: "ספא ריש וילה",
+    headingLine2: "חוויית חמאם יוקרתית, טיפולי ספא פרטיים ואירוח וילה מפנק",
     scroll: "גלול להמשך",
   },
   en: {
@@ -51,14 +51,17 @@ export default function HeroLanding() {
           dir={isHebrew ? "rtl" : "ltr"}
         >
           <h1
-            className={`text-[34px] font-light leading-[1.6] text-white drop-shadow-md sm:text-[38px] ${
+            className={`text-[42px] font-light leading-[1.35] text-white drop-shadow-md sm:text-[52px] ${
               isHebrew ? "tracking-[0.2em]" : "tracking-[0.62em]"
             }`}
           >
             {copy.headingLine1}
-            <br />
-            {copy.headingLine2}
           </h1>
+          <div className="mt-6 max-w-[720px] rounded-full bg-black/35 px-6 py-3 backdrop-blur-[2px]">
+            <p className="text-base font-light leading-[1.9] text-white/90 sm:text-lg">
+              {copy.headingLine2}
+            </p>
+          </div>
         </motion.div>
       </div>
 

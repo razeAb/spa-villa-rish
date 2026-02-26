@@ -1,7 +1,9 @@
-import { FaChevronRight, FaWhatsapp } from "react-icons/fa";
+import { FaChevronRight, FaFacebookF, FaInstagram, FaWhatsapp } from "react-icons/fa";
 import { useLocale } from "../context/LocaleContext.jsx";
 
 const WHATSAPP_LINK = "https://wa.me/972506290202";
+const INSTAGRAM_LINK = "https://www.instagram.com/sparish__";
+const FACEBOOK_LINK = "https://www.facebook.com/share/17kXvw9eKh/";
 
 export default function FloatingActions() {
   const { locale, toggleLocale } = useLocale();
@@ -35,6 +37,27 @@ export default function FloatingActions() {
         <FaWhatsapp className="text-[18px]" />
         <span className="absolute bottom-[6px] right-[6px] h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-black" />
       </a>
+
+      <div className="fixed bottom-6 right-20 z-40 flex items-center gap-2">
+        <a
+          href={INSTAGRAM_LINK}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Instagram"
+          className="grid h-10 w-10 place-items-center rounded-full bg-white/90 text-black shadow-lg shadow-black/30 ring-1 ring-black/10 transition hover:scale-105"
+        >
+          <FaInstagram className="text-[16px]" />
+        </a>
+        <a
+          href={FACEBOOK_LINK}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Facebook"
+          className="grid h-10 w-10 place-items-center rounded-full bg-white/90 text-black shadow-lg shadow-black/30 ring-1 ring-black/10 transition hover:scale-105"
+        >
+          <FaFacebookF className="text-[15px]" />
+        </a>
+      </div>
     </>
   );
 }

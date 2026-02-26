@@ -50,9 +50,9 @@ export default function Navbar() {
         {/* Left: Logo */}
         <a href="/" className="flex items-center gap-3 justify-self-start" aria-label="Home">
           <img
-            src="/photos/spa-rish-lockup-light-he.png" // public/photos/logo.jpeg
+            src="/spa-photos/spa%20rish%20nav%20logo.png"
             alt="Spa Rish"
-            className="h-10 w-20 object-contain"
+            className="h-14 w-28 object-contain"
           />
         </a>
 
