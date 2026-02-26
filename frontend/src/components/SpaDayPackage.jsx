@@ -10,16 +10,12 @@ const COPY = {
   he: {
     kicker: "חבילות +",
     heading: "מגע המשי",
-    description:
-      "מתחם ספא פרטי לחלוטין • סאונה יבשה, ג'קוזי וחמאם טורקי בלעדי • עיסוי זוגי מפנק 50 דקות • ערכת חמאם לטיפול עצמי • כיבוד עשיר, קפה ותה.",
     price: "₪1,550 לזוג",
     cta: "שריין מקום",
   },
   en: {
     kicker: "Packages +",
     heading: "Silk Touch",
-    description:
-      "Fully private spa complex • Exclusive dry sauna, Jacuzzi & Turkish Hammam • 50-minute pampering couples massage • Traditional Hammam self-treatment kit • Rich refreshments, coffee & tea.",
     price: "₪1,550 per couple",
     cta: "Book Now",
   },
@@ -38,7 +34,7 @@ export default function SpaDayPackage() {
   const isHebrew = locale === "he";
   const copy = COPY[locale];
   const service = services.find((svc) => svc.slug === SPA_DAY_SLUG);
-  const description = service?.translations?.[locale]?.description || service?.description || copy.description || "";
+  const description = service?.translations?.[locale]?.description || service?.description || "";
 
   return (
     <motion.section

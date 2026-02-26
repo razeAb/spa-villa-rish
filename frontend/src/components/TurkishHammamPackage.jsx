@@ -10,16 +10,12 @@ const COPY = {
   he: {
     kicker: "חבילות +",
     heading: "ענני קצף",
-    description:
-      "שימוש חופשי בכל מתקני הספא הפרטיים • סאונה יבשה וג'קוזי • חמאם טורקי מסורתי • עיסוי זוגי מרגיע 45 דקות • ערכת חמאם (סבונים וספוגים ארומטיים) • פינת קפה ותה חופשית.",
     price: "₪1,180 לזוג",
     cta: "שריין מקום",
   },
   en: {
     kicker: "Packages +",
     heading: "Foam Clouds",
-    description:
-      "Free use of all private spa facilities • Dry sauna & Jacuzzi • Traditional Turkish Hammam • 45-minute relaxing couples massage • Hammam kit (soaps & aromatic sponges) • Free coffee & tea corner.",
     price: "₪1,180 per couple",
     cta: "Book Now",
   },
@@ -38,7 +34,7 @@ export default function TurkishHammamPackage() {
   const isHebrew = locale === "he";
   const copy = COPY[locale];
   const service = services.find((svc) => svc.slug === HAMMAM_SLUG);
-  const description = service?.translations?.[locale]?.description || service?.description || copy.description || "";
+  const description = service?.translations?.[locale]?.description || service?.description || "";
 
   return (
     <motion.section

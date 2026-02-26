@@ -10,16 +10,12 @@ const COPY = {
   he: {
     kicker: "חבילות +",
     heading: "רגעי BFF",
-    description:
-      "שימוש פרטי בחמאם, סאונה וג'קוזי • עיסוי מקצועי 45 דקות • ערכת חמאם לטיפול עצמי • כיבוד קפה ותה • 2 שעות: ₪400 למשתתפת • 3 שעות: ₪500 למשתתפת • מינימום 3 משתתפות.",
     price: "₪400–₪500 למשתתפת",
     cta: "שריין מקום",
   },
   en: {
     kicker: "Packages +",
     heading: "BFF Moments",
-    description:
-      "Private use of Hammam, Sauna & Jacuzzi • 45-minute professional massage • Hammam treatment kit • Coffee & tea refreshments • 2 Hours: ₪400 per participant • 3 Hours: ₪500 per participant • Minimum 3 participants.",
     price: "₪400–₪500 per participant",
     cta: "Book Now",
   },
@@ -38,7 +34,7 @@ export default function VipPackage() {
   const isHebrew = locale === "he";
   const copy = COPY[locale];
   const service = services.find((svc) => svc.slug === VIP_SLUG);
-  const description = service?.translations?.[locale]?.description || service?.description || copy.description || "";
+  const description = service?.translations?.[locale]?.description || service?.description || "";
 
   return (
     <motion.section

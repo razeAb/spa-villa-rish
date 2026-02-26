@@ -27,26 +27,16 @@ export default function VillaStayPage() {
     ? {
         eyebrow: "חבילות +",
         heading: "לינה בוילה",
-        description: `להתעורר בתוך שלווה
-השלימו את חוויית הספא עם לינה בווילה ריש – הציון 10 ב-Booking מבטיח לכם איכות ללא פשרות.
-טבלו בבריכה המחוממת הפרטית, תיהנו מארוחה בגינה המעוצבת והירגעו בחדרים שנוצרו למנוחה אמיתית.
-מתקנים: בריכה מחוממת, מטבח מלא, חצר פרטית וחדרי שינה יוקרתיים.
-מחיר לזוג: 1,300 ₪ ללילה`,
         price: "₪1,300 — ללילה (לזוג)",
         cta: "שלחו וואטסאפ",
       }
     : {
         eyebrow: "Packages +",
         heading: "Villa Overnight Stay",
-        description: `Wake up in serenity.
-Complete your spa experience with an overnight stay at Villa Rish — a perfect 10 on Booking for uncompromising quality.
-Soak in the private heated pool, enjoy a meal in the designed garden, and unwind in rooms made for real rest.
-Amenities: heated pool, full kitchen, private yard, and luxury bedrooms.
-Price for a couple: ₪1,300 per night.`,
         price: "₪1,300 — per night (for two)",
         cta: "WhatsApp Us",
       };
-  const description = service?.translations?.[locale]?.description || service?.description || copy.description || "";
+  const description = service?.translations?.[locale]?.description || service?.description || "";
 
   return (
     <motion.section
