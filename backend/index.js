@@ -14,7 +14,17 @@ const { generalLimiter, loginLimiter } = require("./middleware/rateLimit");
 const requestLogger = require("./middleware/logger");
 
 const app = express();
-app.set("trust proxy", true);
+const trustProxySetting = process.env.TRUST_PROXY;
+const parsedTrustProxy = trustProxySetting
+  ? trustProxySetting === "true"
+    ? 1
+    : Number.isNaN(Number(trustProxySetting))
+      ? trustProxySetting
+      : Number(trustProxySetting)
+  : process.env.NODE_ENV === "production"
+    ? 1
+    : false;
+app.set("trust proxy", parsedTrustProxy);
 app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
