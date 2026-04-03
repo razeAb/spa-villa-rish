@@ -103,4 +103,17 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
+// Delete service (admin)
+router.delete("/:id", auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doc = await Service.findByIdAndDelete(id);
+    if (!doc) return res.status(404).json({ error: "Service not found" });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 module.exports = router;

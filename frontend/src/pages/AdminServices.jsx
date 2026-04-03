@@ -84,18 +84,20 @@ export default function AdminServices() {
       setServices(data);
       const map = {};
       data.forEach((svc) => {
-                map[svc._id] = {
-                  title: svc.title || "",
-                  priceAmount: svc.priceAmount || "",
-                  priceDisplay: svc.priceDisplay || "",
-                  durationMin: svc.durationMin || "",
-                  description: svc.description || "",
-                  isActive: svc.isActive !== false,
-                  addOns: Array.isArray(svc.addOns)
-                    ? svc.addOns.map((addOn) => ({
-                        _id: addOn._id,
-                        title: addOn.title || "",
-                        description: addOn.description || "",
+        const localizedDescription = svc?.translations?.[lang]?.description || svc?.description || "";
+        map[svc._id] = {
+          title: svc.title || "",
+          priceAmount: svc.priceAmount || "",
+          priceDisplay: svc.priceDisplay || "",
+          durationMin: svc.durationMin || "",
+          description: localizedDescription,
+          isActive: svc.isActive !== false,
+          translations: svc.translations || {},
+          addOns: Array.isArray(svc.addOns)
+            ? svc.addOns.map((addOn) => ({
+                _id: addOn._id,
+                title: addOn.title || "",
+                description: addOn.description || "",
                         priceAmount: addOn.priceAmount ?? "",
                         durationMin: addOn.durationMin ?? "",
                       }))
@@ -174,6 +176,15 @@ export default function AdminServices() {
     if (!draft) return;
     setSaving((prev) => ({ ...prev, [id]: true }));
     try {
+      const prevTranslations = draft.translations || {};
+      const langTranslation = prevTranslations[lang] || {};
+      const updatedTranslations = {
+        ...prevTranslations,
+        [lang]: {
+          ...langTranslation,
+          description: draft.description,
+        },
+      };
       await api.upsertService({
         id,
         title: draft.title,
@@ -182,6 +193,7 @@ export default function AdminServices() {
         priceAmount: Number(draft.priceAmount),
         priceDisplay: draft.priceDisplay,
         isActive: Boolean(draft.isActive),
+        translations: updatedTranslations,
         addOns: Array.isArray(draft.addOns)
           ? draft.addOns.map((addOn) => ({
               _id: addOn._id,
