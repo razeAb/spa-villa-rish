@@ -3,7 +3,7 @@ import { useLocale } from "../context/LocaleContext.jsx";
 
 const COPY = {
   he: {
-    headingLine1: "ספא ריש וילה",
+    headingLine1: "ספא וילה ריש",
     headingLine2: "חוויית חמאם יוקרתית, טיפולי ספא פרטיים ואירוח וילה מפנק",
     scroll: "גלול להמשך",
   },

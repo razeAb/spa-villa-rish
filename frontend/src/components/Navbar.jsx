@@ -3,10 +3,14 @@ import { Link } from "react-router-dom";
 import { FaChevronDown } from "react-icons/fa";
 import { useLocale } from "../context/LocaleContext.jsx";
 
+// These 3 ids must match FeaturedPackages.jsx's `package-${service.slug}` section
+// ids — the hero packages are now rendered dynamically from the database rather
+// than as fixed sections, so a slug change or a package no longer being featured
+// means this link simply won't find a matching section on the page.
 const PACKAGE_LINKS = [
-  { id: "packages", label: { he: "רגעי BFF", en: "BFF Moments" } },
-  { id: "hammam", label: { he: "ענני קצף", en: "Foam Clouds" } },
-  { id: "spa-day", label: { he: "מגע המשי", en: "Silk Touch" } },
+  { id: "package-bff-moments", label: { he: "רגעי BFF", en: "BFF Moments" } },
+  { id: "package-couple-foam-clouds", label: { he: "ענני קצף", en: "Foam Clouds" } },
+  { id: "package-couple-silk-touch", label: { he: "מגע המשי", en: "Silk Touch" } },
   { id: "gallery", label: { he: "גלריה", en: "Gallery" } },
   { id: "treatments", label: { he: "טיפולים אישיים", en: "Treatments" } },
   { id: "villa-stay", label: { he: "לינת וילה", en: "Villa Stay" } },
