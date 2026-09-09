@@ -37,6 +37,9 @@ const ServiceSchema = new mongoose.Schema(
     },
     addOns: { type: [AddOnSchema], default: [] },
     isActive: { type: Boolean, default: true },
+    heroImage: { type: String, default: "" },
+    featured: { type: Boolean, default: false },
+    sortOrder: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

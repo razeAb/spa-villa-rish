@@ -45,7 +45,6 @@ const T = {
     hideCard: "הסתר פרטים",
     cardNumber: "כרטיס",
     expiry: "תוקף",
-    cvc: "CVV",
     dow: ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"],
   },
   en: {
@@ -90,7 +89,6 @@ const T = {
     hideCard: "Hide details",
     cardNumber: "Card",
     expiry: "Expiry",
-    cvc: "CVV",
     dow: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
   },
 };
@@ -158,7 +156,7 @@ export default function AdminConsole() {
     setLoading(true);
     setError("");
     try {
-      const data = await api.listBookings();
+      const data = await api.listBookings({ excludeStatus: "done" });
       setBookings(data);
     } catch (err) {
       setError(err?.payload?.error || err.message || T[lang].loadSettingsError);
@@ -216,6 +214,10 @@ export default function AdminConsole() {
   };
 
   const handleStatusChange = async (bookingId, status) => {
+    if (status === "canceled") {
+      const confirmMessage = lang === "he" ? "לבטל את התור?" : "Cancel this booking?";
+      if (!window.confirm(confirmMessage)) return;
+    }
     try {
       await api.updateBooking(bookingId, { status });
       await loadBookings();
@@ -467,7 +469,7 @@ export default function AdminConsole() {
                     {filteredBookings.map((booking) => {
                       const payment = booking.paymentId;
                       const maskedCard = payment?.maskedCard || (payment?.last4 ? `**** **** **** ${payment.last4}` : "");
-                      const hasCardDetails = Boolean(maskedCard || payment?.expiresOn || payment?.cvc);
+                      const hasCardDetails = Boolean(maskedCard || payment?.expiresOn);
                       const isOpen = openPaymentBookingId === booking._id;
                       return (
                       <tr key={booking._id} className="bg-black/40">
@@ -506,11 +508,6 @@ export default function AdminConsole() {
                                     {payment?.expiresOn ? (
                                       <p>
                                         {T[lang].expiry}: {payment.expiresOn}
-                                      </p>
-                                    ) : null}
-                                    {payment?.cvc ? (
-                                      <p>
-                                        {T[lang].cvc}: {payment.cvc}
                                       </p>
                                     ) : null}
                                   </div>

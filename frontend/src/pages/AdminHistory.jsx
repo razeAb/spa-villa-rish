@@ -24,7 +24,8 @@ const T = {
     hideCard: "הסתר פרטים",
     cardNumber: "כרטיס",
     expiry: "תוקף",
-    cvc: "CVV",
+    loadMore: "טען עוד",
+    loadingMore: "טוען עוד…",
   },
   en: {
     title: "Admin · Order History",
@@ -47,7 +48,8 @@ const T = {
     hideCard: "Hide details",
     cardNumber: "Card",
     expiry: "Expiry",
-    cvc: "CVV",
+    loadMore: "Load more",
+    loadingMore: "Loading more…",
   },
 };
 
@@ -82,41 +84,65 @@ const isSameLocalDay = (dateA, dateB) =>
   dateA.getMonth() === dateB.getMonth() &&
   dateA.getDate() === dateB.getDate();
 
+const PAGE_SIZE = 50;
+
 export default function AdminHistory() {
   const [authed] = useState(() => Boolean(getAuthToken()));
   const [lang, setLang] = useState("he");
   const toggleLang = () => setLang((p) => (p === "he" ? "en" : "he"));
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [showTodayOnly, setShowTodayOnly] = useState(false);
   const [openPaymentBookingId, setOpenPaymentBookingId] = useState(null);
+
+  const fetchPage = useCallback(async (skip) => {
+    const data = await api.listBookings({ status: "done", sort: "desc", limit: PAGE_SIZE + 1, skip });
+    const more = data.length > PAGE_SIZE;
+    return { items: more ? data.slice(0, PAGE_SIZE) : data, more };
+  }, []);
 
   const loadBookings = useCallback(async () => {
     if (!authed) return;
     setLoading(true);
     setError("");
     try {
-      const data = await api.listBookings();
-      setBookings(data);
+      const { items, more } = await fetchPage(0);
+      setBookings(items);
+      setHasMore(more);
     } catch (err) {
       setError(err?.payload?.error || err.message || "Failed to load bookings");
     } finally {
       setLoading(false);
     }
-  }, [authed]);
+  }, [authed, fetchPage]);
 
   useEffect(() => {
     loadBookings();
   }, [loadBookings]);
+
+  const handleLoadMore = async () => {
+    setLoadingMore(true);
+    setError("");
+    try {
+      const { items, more } = await fetchPage(bookings.length);
+      setBookings((prev) => [...prev, ...items]);
+      setHasMore(more);
+    } catch (err) {
+      setError(err?.payload?.error || err.message || "Failed to load more bookings");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const filteredBookings = useMemo(() => {
     if (!bookings.length) return [];
     const normalizedQuery = query.trim().toLowerCase();
     const today = new Date();
     return bookings.filter((booking) => {
-      if (booking.status !== "done") return false;
       if (showTodayOnly) {
         if (!booking.startUtc) return false;
         const bookingDate = new Date(booking.startUtc);
@@ -209,7 +235,7 @@ export default function AdminHistory() {
                   {filteredBookings.map((booking) => {
                     const payment = booking.paymentId;
                     const maskedCard = payment?.maskedCard || (payment?.last4 ? `**** **** **** ${payment.last4}` : "");
-                    const hasCardDetails = Boolean(maskedCard || payment?.expiresOn || payment?.cvc);
+                    const hasCardDetails = Boolean(maskedCard || payment?.expiresOn);
                     const isOpen = openPaymentBookingId === booking._id;
                     return (
                       <tr key={booking._id} className="bg-black/40">
@@ -248,11 +274,6 @@ export default function AdminHistory() {
                                           {T[lang].expiry}: {payment.expiresOn}
                                         </p>
                                       ) : null}
-                                      {payment?.cvc ? (
-                                        <p>
-                                          {T[lang].cvc}: {payment.cvc}
-                                        </p>
-                                      ) : null}
                                     </div>
                                   ) : null}
                                 </div>
@@ -276,6 +297,19 @@ export default function AdminHistory() {
                 </tbody>
               </table>
             </div>
+
+            {hasMore ? (
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  className="rounded-lg border border-white/15 px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 disabled:opacity-60"
+                >
+                  {loadingMore ? T[lang].loadingMore : T[lang].loadMore}
+                </button>
+              </div>
+            ) : null}
           </div>
         )}
       </main>

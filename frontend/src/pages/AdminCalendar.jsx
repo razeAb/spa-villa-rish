@@ -5,6 +5,16 @@ import { api, getAuthToken, setAuthToken } from "../api/client";
 import "./AdminCalendar.css";
 
 const toDateIso = (date) => date.toISOString().slice(0, 10);
+// Local (not UTC) calendar date — pairs correctly with toTimeString()'s local time
+// when prefilling the reschedule inputs, since combineDateTime() interprets date+time
+// as local. Using the UTC-based toDateIso here would show the wrong day whenever the
+// local offset crosses a UTC day boundary (e.g. a late-evening booking in Israel).
+const toLocalDateIso = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 const formatTime = (iso) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 const getServiceTitle = (svc, lang) => {
   if (!svc) return "";
@@ -109,6 +119,10 @@ export default function AdminCalendar() {
       saving: "שומר…",
       langButton: "English",
       emptyDay: "אין תורים ביום זה.",
+      reschedule: "שינוי מועד",
+      updateTime: "עדכן מועד",
+      updating: "מעדכן…",
+      rescheduled: "המועד עודכן",
     },
     en: {
       adminCalendar: "Admin Calendar",
@@ -148,6 +162,10 @@ export default function AdminCalendar() {
       saving: "Saving…",
       langButton: "עברית",
       emptyDay: "No appointments for this day.",
+      reschedule: "Reschedule",
+      updateTime: "Update time",
+      updating: "Updating…",
+      rescheduled: "Time updated",
     },
   };
 
@@ -174,6 +192,10 @@ export default function AdminCalendar() {
   const [noteDrafts, setNoteDrafts] = useState({});
   const [savingNote, setSavingNote] = useState({});
   const [deleting, setDeleting] = useState({});
+
+  const [rescheduleDrafts, setRescheduleDrafts] = useState({});
+  const [rescheduling, setRescheduling] = useState({});
+  const [rescheduleMessages, setRescheduleMessages] = useState({});
 
   const [newBooking, setNewBooking] = useState({
     serviceId: "",
@@ -214,13 +236,45 @@ export default function AdminCalendar() {
       .finally(() => setServicesLoading(false));
   }, []);
 
+  // Reloading bookings (after any save/delete/create/reschedule elsewhere on the
+  // page) must not clobber an admin's in-progress, unsaved edits in other rows —
+  // only seed a draft for a booking that doesn't already have one, and drop drafts
+  // for bookings that are no longer in the list.
   useEffect(() => {
-    setNoteDrafts(
-      bookings.reduce((map, booking) => {
-        map[booking._id] = booking.note || "";
-        return map;
-      }, {})
-    );
+    const bookingIds = new Set(bookings.map((booking) => booking._id));
+
+    setNoteDrafts((prev) => {
+      const next = {};
+      bookings.forEach((booking) => {
+        next[booking._id] = Object.prototype.hasOwnProperty.call(prev, booking._id)
+          ? prev[booking._id]
+          : booking.note || "";
+      });
+      return next;
+    });
+
+    setRescheduleDrafts((prev) => {
+      const next = {};
+      bookings.forEach((booking) => {
+        if (Object.prototype.hasOwnProperty.call(prev, booking._id)) {
+          next[booking._id] = prev[booking._id];
+          return;
+        }
+        next[booking._id] = {
+          date: booking.startUtc ? toLocalDateIso(new Date(booking.startUtc)) : "",
+          time: booking.startUtc ? new Date(booking.startUtc).toTimeString().slice(0, 5) : "",
+        };
+      });
+      return next;
+    });
+
+    setRescheduleMessages((prev) => {
+      const next = {};
+      Object.keys(prev).forEach((id) => {
+        if (bookingIds.has(id)) next[id] = prev[id];
+      });
+      return next;
+    });
   }, [bookings]);
 
   /* ----------------------------- RANGE ----------------------------- */
@@ -316,6 +370,34 @@ export default function AdminCalendar() {
       await loadBookings();
     } finally {
       setSavingNote((p) => ({ ...p, [id]: false }));
+    }
+  };
+
+  /* ----------------------------- RESCHEDULE ----------------------------- */
+  const handleReschedule = async (id) => {
+    const draft = rescheduleDrafts[id] || {};
+    const startUtc = combineDateTime(draft.date, draft.time);
+    if (!startUtc) {
+      setRescheduleMessages((p) => ({
+        ...p,
+        [id]: { status: "error", text: lang === "he" ? "בחר תאריך ושעה" : "Choose date and time" },
+      }));
+      return;
+    }
+
+    setRescheduling((p) => ({ ...p, [id]: true }));
+    setRescheduleMessages((p) => ({ ...p, [id]: null }));
+    try {
+      await api.updateBooking(id, { startUtc });
+      setRescheduleMessages((p) => ({ ...p, [id]: { status: "success", text: T[lang].rescheduled } }));
+      await loadBookings();
+    } catch (err) {
+      setRescheduleMessages((p) => ({
+        ...p,
+        [id]: { status: "error", text: err?.payload?.error || err.message },
+      }));
+    } finally {
+      setRescheduling((p) => ({ ...p, [id]: false }));
     }
   };
 
@@ -567,6 +649,50 @@ export default function AdminCalendar() {
                           >
                             {deleting[b._id] ? T[lang].removing : T[lang].remove}
                           </button>
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="text-xs text-white/70">{T[lang].reschedule}</p>
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            <input
+                              type="date"
+                              value={rescheduleDrafts[b._id]?.date || ""}
+                              onChange={(e) =>
+                                setRescheduleDrafts((prev) => ({
+                                  ...prev,
+                                  [b._id]: { ...prev[b._id], date: e.target.value },
+                                }))
+                              }
+                              className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-sm text-white"
+                            />
+                            <input
+                              type="time"
+                              value={rescheduleDrafts[b._id]?.time || ""}
+                              onChange={(e) =>
+                                setRescheduleDrafts((prev) => ({
+                                  ...prev,
+                                  [b._id]: { ...prev[b._id], time: e.target.value },
+                                }))
+                              }
+                              className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-sm text-white"
+                            />
+                            <button
+                              onClick={() => handleReschedule(b._id)}
+                              disabled={rescheduling[b._id]}
+                              className="rounded-lg border border-white/20 px-3 py-1 text-xs text-white/80 hover:bg-white/10 disabled:opacity-60"
+                            >
+                              {rescheduling[b._id] ? T[lang].updating : T[lang].updateTime}
+                            </button>
+                          </div>
+                          {rescheduleMessages[b._id] ? (
+                            <p
+                              className={`mt-1 text-xs ${
+                                rescheduleMessages[b._id].status === "error" ? "text-red-400" : "text-emerald-300"
+                              }`}
+                            >
+                              {rescheduleMessages[b._id].text}
+                            </p>
+                          ) : null}
                         </div>
 
                         <label className="mt-3 block text-xs text-white/70">

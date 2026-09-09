@@ -75,6 +75,33 @@ export const api = {
   login: (username, password) => request("/auth/login", { method: "POST", body: { username, password } }),
   listServices: () => request("/services"),
   upsertService: (payload) => request("/services", { method: "POST", body: payload, auth: true }),
+  deleteService: (id) => request(`/services/${id}`, { method: "DELETE", auth: true }),
+  uploadImage: async (file) => {
+    const token = getAuthToken();
+    if (!token) {
+      throw new ApiError(401, { error: "Authentication required" });
+    }
+    const formData = new FormData();
+    formData.append("image", file);
+    const response = await fetch(`${baseUrl}/uploads`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const text = await response.text();
+    let data = null;
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = null;
+      }
+    }
+    if (!response.ok) {
+      throw new ApiError(response.status, data);
+    }
+    return data;
+  },
   getAvailability: (serviceId, date) => {
     const params = new URLSearchParams({ serviceId, date });
     return request(`/availability?${params.toString()}`);

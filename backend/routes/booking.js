@@ -153,15 +153,30 @@ router.post('/admin', auth, async (req,res) => {
 // שאילת הזמנות (מנהל)
 router.get('/', auth, async (req,res) => {
   try {
-    const { from, to, status } = req.query;
+    const { from, to, status, excludeStatus, limit, skip, sort } = req.query;
     const filter = {};
     if (from || to) {
       filter.startUtc = {};
       if (from) filter.startUtc.$gte = new Date(from);
       if (to)   filter.startUtc.$lte = new Date(to);
     }
-    if (status) filter.status = status;
-    const items = await Booking.find(filter).populate('serviceId').populate('paymentId').sort({ startUtc: 1 }).lean();
+    if (status) {
+      filter.status = status;
+    } else if (excludeStatus) {
+      filter.status = { $ne: excludeStatus };
+    }
+
+    let query = Booking.find(filter)
+      .populate('serviceId')
+      .populate('paymentId')
+      .sort({ startUtc: sort === 'desc' ? -1 : 1 });
+
+    const skipNum = Number(skip);
+    if (Number.isFinite(skipNum) && skipNum > 0) query = query.skip(skipNum);
+    const limitNum = Number(limit);
+    if (Number.isFinite(limitNum) && limitNum > 0) query = query.limit(limitNum);
+
+    const items = await query.lean();
     res.json(items);
   } catch (err) {
     console.error(err);

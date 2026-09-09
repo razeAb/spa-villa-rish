@@ -32,9 +32,12 @@ async function ensureCatalogServices() {
       isActive: entry.isActive !== false,
     };
 
+    // $setOnInsert only fills these in the first time a slug is created — once the
+    // document exists, admin edits (price, title, active/deactivated, ...) are the
+    // source of truth and must survive a server restart.
     await Service.findOneAndUpdate(
       { slug },
-      { $set: payload },
+      { $setOnInsert: payload },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
   }

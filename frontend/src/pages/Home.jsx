@@ -1,8 +1,6 @@
 import { motion } from "framer-motion";
 import HeroLanding from "../components/HeroLanding";
-import VipPackage from "../components/VipPackage";
-import TurkishHammamPackage from "../components/TurkishHammamPackage";
-import SpaDayPackage from "../components/SpaDayPackage";
+import FeaturedPackages from "../components/FeaturedPackages";
 import SpaPhotosCarousel from "../components/SpaPhotosCarousel";
 import IndividualTreatments from "../components/IndividualTreatments";
 import VillaStayPage from "../components/VillaStayPage";
@@ -17,9 +15,7 @@ export default function Home() {
       className="space-y-0"
     >
       <HeroLanding />
-      <VipPackage />
-      <TurkishHammamPackage />
-      <SpaDayPackage />
+      <FeaturedPackages />
       <SpaPhotosCarousel />
       <IndividualTreatments />
       <VillaStayPage />

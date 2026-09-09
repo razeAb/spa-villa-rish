@@ -21,6 +21,8 @@ const T = {
     save: "שמור",
     saving: "שומר…",
     deactivate: "השבת",
+    deletePermanently: "מחק לצמיתות",
+    deleteConfirm: "למחוק את השירות לצמיתות? לא ניתן לשחזר.",
     addTitle: "הוספת שירות",
     add: "הוסף שירות",
     description: "תיאור (לא חובה)",
@@ -31,6 +33,12 @@ const T = {
     addOnDuration: "משך (דק׳)",
     addOnAdd: "הוסף תוספת",
     addOnRemove: "הסר",
+    featured: "הצג כחבילה מובלטת בעמוד הבית",
+    sortOrder: "סדר הצגה",
+    heroImage: "תמונת רקע לעמוד הבית",
+    uploadPhoto: "העלאת תמונה",
+    uploading: "מעלה…",
+    noImage: "לא הועלתה תמונה",
   },
   en: {
     header: "Admin · Services",
@@ -49,6 +57,8 @@ const T = {
     save: "Save",
     saving: "Saving…",
     deactivate: "Deactivate",
+    deletePermanently: "Delete permanently",
+    deleteConfirm: "Permanently delete this service? This can't be undone.",
     addTitle: "Add service",
     add: "Add service",
     description: "Description (optional)",
@@ -59,6 +69,12 @@ const T = {
     addOnDuration: "Duration (min)",
     addOnAdd: "Add add-on",
     addOnRemove: "Remove",
+    featured: "Show as a featured package on the homepage",
+    sortOrder: "Display order",
+    heroImage: "Homepage background photo",
+    uploadPhoto: "Upload photo",
+    uploading: "Uploading…",
+    noImage: "No photo uploaded",
   },
 };
 
@@ -73,8 +89,20 @@ export default function AdminServices() {
   const [error, setError] = useState("");
   const [drafts, setDrafts] = useState({});
   const [saving, setSaving] = useState({});
-  const [createForm, setCreateForm] = useState({ title: "", priceAmount: "", priceDisplay: "", durationMin: "", description: "" });
+  const [deleting, setDeleting] = useState({});
+  const [uploadingImage, setUploadingImage] = useState({});
+  const [createForm, setCreateForm] = useState({
+    title: "",
+    priceAmount: "",
+    priceDisplay: "",
+    durationMin: "",
+    description: "",
+    featured: false,
+    sortOrder: "",
+    heroImage: "",
+  });
   const [createMessage, setCreateMessage] = useState("");
+  const [createUploading, setCreateUploading] = useState(false);
 
   const loadServices = useCallback(async () => {
     setLoading(true);
@@ -92,6 +120,9 @@ export default function AdminServices() {
           durationMin: svc.durationMin || "",
           description: localizedDescription,
           isActive: svc.isActive !== false,
+          featured: Boolean(svc.featured),
+          sortOrder: svc.sortOrder || 0,
+          heroImage: svc.heroImage || "",
           translations: svc.translations || {},
           addOns: Array.isArray(svc.addOns)
             ? svc.addOns.map((addOn) => ({
@@ -193,6 +224,9 @@ export default function AdminServices() {
         priceAmount: Number(draft.priceAmount),
         priceDisplay: draft.priceDisplay,
         isActive: Boolean(draft.isActive),
+        featured: Boolean(draft.featured),
+        sortOrder: Number(draft.sortOrder) || 0,
+        heroImage: draft.heroImage || "",
         translations: updatedTranslations,
         addOns: Array.isArray(draft.addOns)
           ? draft.addOns.map((addOn) => ({
@@ -214,6 +248,46 @@ export default function AdminServices() {
 
   const handleToggleActive = (id, next) => handleSave(id, { isActive: next });
 
+  const handleDelete = async (id) => {
+    if (!window.confirm(T[lang].deleteConfirm)) return;
+    setDeleting((prev) => ({ ...prev, [id]: true }));
+    try {
+      await api.deleteService(id);
+      await loadServices();
+    } catch (err) {
+      setError(err?.payload?.error || err.message || (lang === "he" ? "שגיאה במחיקת שירות" : "Failed to delete service"));
+    } finally {
+      setDeleting((prev) => ({ ...prev, [id]: false }));
+    }
+  };
+
+  const handleImageUpload = async (id, file) => {
+    if (!file) return;
+    setUploadingImage((prev) => ({ ...prev, [id]: true }));
+    try {
+      const { url } = await api.uploadImage(file);
+      handleDraftChange(id, "heroImage", url);
+      await handleSave(id, { heroImage: url });
+    } catch (err) {
+      setError(err?.payload?.error || err.message || (lang === "he" ? "שגיאה בהעלאת תמונה" : "Failed to upload image"));
+    } finally {
+      setUploadingImage((prev) => ({ ...prev, [id]: false }));
+    }
+  };
+
+  const handleCreateImageUpload = async (file) => {
+    if (!file) return;
+    setCreateUploading(true);
+    try {
+      const { url } = await api.uploadImage(file);
+      setCreateForm((prev) => ({ ...prev, heroImage: url }));
+    } catch (err) {
+      setCreateMessage(err?.payload?.error || err.message || (lang === "he" ? "שגיאה בהעלאת תמונה" : "Failed to upload image"));
+    } finally {
+      setCreateUploading(false);
+    }
+  };
+
   const handleCreate = async (event) => {
     event.preventDefault();
     setCreateMessage("");
@@ -224,8 +298,20 @@ export default function AdminServices() {
         durationMin: Number(createForm.durationMin),
         priceAmount: Number(createForm.priceAmount),
         priceDisplay: createForm.priceDisplay || "",
+        featured: Boolean(createForm.featured),
+        sortOrder: Number(createForm.sortOrder) || 0,
+        heroImage: createForm.heroImage || "",
       });
-      setCreateForm({ title: "", priceAmount: "", priceDisplay: "", durationMin: "", description: "" });
+      setCreateForm({
+        title: "",
+        priceAmount: "",
+        priceDisplay: "",
+        durationMin: "",
+        description: "",
+        featured: false,
+        sortOrder: "",
+        heroImage: "",
+      });
       setCreateMessage(lang === "he" ? "השירות נוסף" : "Service added");
       await loadServices();
     } catch (err) {
@@ -341,6 +427,51 @@ export default function AdminServices() {
                             rows={2}
                           />
                         </label>
+
+                        <div className="flex w-full flex-wrap items-center gap-4 rounded-lg border border-white/10 bg-white/5 p-3">
+                          <div className="flex items-center gap-3">
+                            {drafts[svc._id]?.heroImage ? (
+                              <img
+                                src={drafts[svc._id].heroImage}
+                                alt=""
+                                className="h-14 w-20 rounded-md border border-white/10 object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-14 w-20 items-center justify-center rounded-md border border-dashed border-white/20 text-[10px] text-white/40">
+                                {T[lang].noImage}
+                              </div>
+                            )}
+                            <label className="rounded-md border border-white/20 px-2 py-1 text-xs text-white/80 hover:bg-white/10 cursor-pointer">
+                              {uploadingImage[svc._id] ? T[lang].uploading : T[lang].uploadPhoto}
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                className="hidden"
+                                disabled={uploadingImage[svc._id]}
+                                onChange={(e) => handleImageUpload(svc._id, e.target.files?.[0])}
+                              />
+                            </label>
+                          </div>
+                          <label className="flex items-center gap-2 text-xs text-white/70">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(drafts[svc._id]?.featured)}
+                              onChange={(e) => handleDraftChange(svc._id, "featured", e.target.checked)}
+                              className="h-4 w-4 rounded border-white/30 bg-black/40"
+                            />
+                            {T[lang].featured}
+                          </label>
+                          <label className="text-xs text-white/70">
+                            {T[lang].sortOrder}
+                            <input
+                              type="number"
+                              value={drafts[svc._id]?.sortOrder ?? 0}
+                              onChange={(e) => handleDraftChange(svc._id, "sortOrder", e.target.value)}
+                              className="mt-1 w-20 rounded-lg border border-white/10 bg-black/40 px-2 py-1 text-white"
+                            />
+                          </label>
+                        </div>
+
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleSave(svc._id)}
@@ -354,6 +485,13 @@ export default function AdminServices() {
                             className="rounded-lg border border-red-300/40 px-3 py-1 text-sm text-red-200 hover:bg-red-500/10"
                           >
                             {T[lang].deactivate}
+                          </button>
+                          <button
+                            onClick={() => handleDelete(svc._id)}
+                            disabled={deleting[svc._id]}
+                            className="rounded-lg border border-red-500/50 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20 disabled:opacity-60"
+                          >
+                            {T[lang].deletePermanently}
                           </button>
                         </div>
                       </div>
@@ -483,6 +621,51 @@ export default function AdminServices() {
                     rows={2}
                   />
                 </label>
+
+                <div className="md:col-span-2 flex flex-wrap items-center gap-4 rounded-lg border border-white/10 bg-black/20 p-3">
+                  <div className="flex items-center gap-3">
+                    {createForm.heroImage ? (
+                      <img
+                        src={createForm.heroImage}
+                        alt=""
+                        className="h-14 w-20 rounded-md border border-white/10 object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-20 items-center justify-center rounded-md border border-dashed border-white/20 text-[10px] text-white/40">
+                        {T[lang].noImage}
+                      </div>
+                    )}
+                    <label className="rounded-md border border-white/20 px-2 py-1 text-xs text-white/80 hover:bg-white/10 cursor-pointer">
+                      {createUploading ? T[lang].uploading : T[lang].uploadPhoto}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        disabled={createUploading}
+                        onChange={(e) => handleCreateImageUpload(e.target.files?.[0])}
+                      />
+                    </label>
+                  </div>
+                  <label className="flex items-center gap-2 text-xs text-white/70">
+                    <input
+                      type="checkbox"
+                      checked={createForm.featured}
+                      onChange={(e) => setCreateForm((p) => ({ ...p, featured: e.target.checked }))}
+                      className="h-4 w-4 rounded border-white/30 bg-black/40"
+                    />
+                    {T[lang].featured}
+                  </label>
+                  <label className="text-xs text-white/70">
+                    {T[lang].sortOrder}
+                    <input
+                      type="number"
+                      value={createForm.sortOrder}
+                      onChange={(e) => setCreateForm((p) => ({ ...p, sortOrder: e.target.value }))}
+                      className="mt-1 w-20 rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-white"
+                    />
+                  </label>
+                </div>
+
                 {createMessage ? <p className="text-sm text-emerald-300 md:col-span-2">{createMessage}</p> : null}
                 <button
                   type="submit"

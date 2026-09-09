@@ -30,10 +30,18 @@ const sectionMotion = {
 
 export default function VipPackage() {
   const { locale } = useLocale();
-  const { services } = useServices();
+  const { services, loading, error } = useServices();
   const isHebrew = locale === "he";
   const copy = COPY[locale];
   const service = services.find((svc) => svc.slug === VIP_SLUG);
+
+  // Only hide the section once services have actually loaded and this one is
+  // genuinely missing/deactivated — a fetch error should fall back to the
+  // hardcoded copy below, not blank out the homepage.
+  if (!loading && !error && !service) return null;
+
+  const heading = service?.translations?.[locale]?.title || service?.title || copy.heading;
+  const price = service?.translations?.[locale]?.priceDisplay || service?.priceDisplay || copy.price;
   const description = service?.translations?.[locale]?.description || service?.description || "";
 
   return (
@@ -61,7 +69,7 @@ export default function VipPackage() {
         >
           <p className={`mb-6 text-sm text-white/85 ${isHebrew ? "tracking-[0.25em]" : "uppercase tracking-[0.35em]"}`}>{copy.kicker}</p>
 
-          <h2 className="font-serif text-[42px] leading-[1.1] sm:text-[56px]">{copy.heading}</h2>
+          <h2 className="font-serif text-[42px] leading-[1.1] sm:text-[56px]">{heading}</h2>
 
           {description ? (
             <p className="mt-6 text-lg leading-relaxed text-white/90 whitespace-pre-line drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
@@ -69,7 +77,7 @@ export default function VipPackage() {
             </p>
           ) : null}
 
-          <p className="mt-8 text-lg italic">{copy.price}</p>
+          <p className="mt-8 text-lg italic">{price}</p>
 
           <Link
             to={{ pathname: "/booking", search: `?serviceSlug=${encodeURIComponent(VIP_SLUG)}` }}

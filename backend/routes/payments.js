@@ -86,7 +86,6 @@ router.post("/authorize", async (req, res) => {
       maskedCard: `**** **** **** ${digits.slice(-4)}`,
       last4: digits.slice(-4),
       expiresOn: expiry,
-      cvc: cvcDigits,
       provider: "mock",
       status: "authorized",
       addOns: resolvedAddOns.map((addOn) => ({

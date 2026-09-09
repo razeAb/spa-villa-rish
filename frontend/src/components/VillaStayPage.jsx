@@ -19,7 +19,7 @@ export default function VillaStayPage() {
     "https://wa.me/972506290202?text=Hi%20Spa%20Rish%2C%20I%27m%20interested%20in%20the%20Villa%20overnight%20stay%20(₪1%2C300)%20for%20two.";
 
   const { locale } = useLocale();
-  const { services } = useServices();
+  const { services, loading, error } = useServices();
   const isHebrew = locale === "he";
   const service = services.find((svc) => svc.slug === VILLA_SLUG);
 
@@ -36,7 +36,13 @@ export default function VillaStayPage() {
         price: "₪1,300 — per night (for two)",
         cta: "WhatsApp Us",
       };
+
+  if (!loading && !error && !service) return null;
+
+  const heading = service?.translations?.[locale]?.title || service?.title || copy.heading;
+  const price = service?.translations?.[locale]?.priceDisplay || service?.priceDisplay || copy.price;
   const description = service?.translations?.[locale]?.description || service?.description || "";
+  const heroImage = service?.heroImage || "/spa-photos/villa-photo.jpeg";
 
   return (
     <motion.section
@@ -44,7 +50,7 @@ export default function VillaStayPage() {
       data-section="villa"
       id="villa-stay"
       className="relative isolate min-h-[100dvh] w-full overflow-hidden bg-cover bg-center bg-no-repeat text-white"
-      style={{ backgroundImage: "url('/spa-photos/villa-photo.jpeg')", scrollMarginTop: "120px" }}
+      style={{ backgroundImage: `url('${heroImage}')`, scrollMarginTop: "120px" }}
     >
       {/* Overlays */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
@@ -63,7 +69,7 @@ export default function VillaStayPage() {
         >
           <p className={`mb-6 text-sm text-white/80 ${isHebrew ? "tracking-[0.2em]" : "uppercase tracking-[0.35em]"}`}>{copy.eyebrow}</p>
 
-          <h1 className="font-serif text-[42px] leading-[1.1] sm:text-[56px]">{copy.heading}</h1>
+          <h1 className="font-serif text-[42px] leading-[1.1] sm:text-[56px]">{heading}</h1>
 
           {description ? (
             <p className="mt-6 text-lg leading-relaxed text-white/90 whitespace-pre-line drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
@@ -71,7 +77,7 @@ export default function VillaStayPage() {
             </p>
           ) : null}
 
-          <p className="mt-8 text-lg italic">{copy.price}</p>
+          <p className="mt-8 text-lg italic">{price}</p>
 
           {/* WhatsApp CTA (no standard booking button) */}
           <a

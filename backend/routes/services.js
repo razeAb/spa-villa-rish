@@ -59,6 +59,9 @@ router.post("/", auth, async (req, res) => {
       translations = {},
       isActive = true,
       slug,
+      heroImage = "",
+      featured = false,
+      sortOrder = 0,
     } = req.body;
     const parsedDuration = Number(durationMin);
     const parsedPrice = Number(priceAmount);
@@ -79,6 +82,9 @@ router.post("/", auth, async (req, res) => {
         he: translations.he || undefined,
       },
       isActive,
+      heroImage: String(heroImage || ""),
+      featured: Boolean(featured),
+      sortOrder: Number(sortOrder) || 0,
     };
     if (Object.prototype.hasOwnProperty.call(req.body, "addOns")) {
       payload.addOns = normalizeAddOns(req.body.addOns);

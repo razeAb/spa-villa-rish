@@ -36,6 +36,12 @@ const COPY = {
     pay: "שלם וסיים",
     success: "ההזמנה התקבלה! ניצור קשר לאישור סופי.",
     error: "אירעה תקלה, נסו שוב.",
+    confirmTitle: "ההזמנה אושרה!",
+    confirmSubtitle: "שלחנו את הפרטים למייל. נתראה בקרוב.",
+    confirmReference: "מספר הזמנה",
+    confirmWhen: "מועד",
+    confirmBookedFor: "עבור",
+    bookAnother: "קביעת תור נוסף",
     validations: {
       contact: "אנא מלאו שם, טלפון ואימייל.",
       schedule: "בחרו טיפול, תאריך ושעה פנויה.",
@@ -73,6 +79,12 @@ const COPY = {
     pay: "Pay & finish",
     success: "Booking received! We’ll confirm shortly.",
     error: "Something went wrong. Please try again.",
+    confirmTitle: "You're booked!",
+    confirmSubtitle: "We've emailed you the details. See you soon.",
+    confirmReference: "Booking reference",
+    confirmWhen: "When",
+    confirmBookedFor: "For",
+    bookAnother: "Book another appointment",
     validations: {
       contact: "Name, phone, and email are required.",
       schedule: "Pick a treatment, date, and open slot.",
@@ -169,6 +181,7 @@ export default function BookingPage() {
   const [payment, setPayment] = useState({ cardNumber: "", expiry: "", cvc: "" });
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
   const [formError, setFormError] = useState("");
+  const [confirmedBooking, setConfirmedBooking] = useState(null);
 
   useEffect(() => {
     if (!initialServiceSlug) return;
@@ -416,7 +429,7 @@ export default function BookingPage() {
         cvc: payment.cvc.trim(),
         addOnIds: selectedAddOnIds,
       });
-      await api.createBooking({
+      const created = await api.createBooking({
         serviceId: selectedServiceDoc._id,
         customerName: contact.customerName.trim(),
         customerEmail: contact.email.trim(),
@@ -425,10 +438,30 @@ export default function BookingPage() {
         startUtc: selectedSlot.startUtc,
         paymentId: authorization.paymentId,
       });
+      setConfirmedBooking({
+        reference: created?._id || "",
+        customerName: contact.customerName.trim(),
+        serviceTitle: selectedCatalogService?.title || selectedServiceDoc?.title || "",
+        dateLabel: formatDateForDisplay(date, locale),
+        timeLabel: selectedSlot.label,
+        total: totalPrice,
+        currency: priceCurrency,
+      });
       setSubmitState({ status: "success", message: copy.success });
     } catch (err) {
       setSubmitState({ status: "error", message: err?.payload?.error || copy.error });
     }
+  };
+
+  const handleBookAnother = () => {
+    setStep(1);
+    setContact({ customerName: "", phone: "", email: "", marketingOptIn: false });
+    setSelectedSlot(null);
+    setSelectedAddOnIds([]);
+    setPayment({ cardNumber: "", expiry: "", cvc: "" });
+    setSubmitState({ status: "idle", message: "" });
+    setFormError("");
+    setConfirmedBooking(null);
   };
 
   const renderStep = () => {
@@ -741,6 +774,51 @@ export default function BookingPage() {
     );
   };
 
+  const renderConfirmation = () => (
+    <div className="space-y-6 text-center">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-emerald-300/40 bg-emerald-500/10 text-2xl text-emerald-300">
+        ✓
+      </div>
+      <div>
+        <h2 className="text-2xl font-semibold text-white">{copy.confirmTitle}</h2>
+        <p className="mt-2 text-sm text-white/70">{copy.confirmSubtitle}</p>
+      </div>
+
+      <div className="mx-auto max-w-md space-y-3 rounded-2xl border border-white/15 bg-white/5 p-5 text-left text-sm text-white/80" dir={isHebrew ? "rtl" : "ltr"}>
+        <div className="flex items-center justify-between">
+          <span className="text-white/50">{copy.confirmBookedFor}</span>
+          <span className="font-medium text-white">{confirmedBooking?.serviceTitle}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-white/50">{copy.confirmWhen}</span>
+          <span className="font-medium text-white">
+            {confirmedBooking?.dateLabel} · {confirmedBooking?.timeLabel}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-white/50">{copy.totalLabel}</span>
+          <span className="font-medium text-white">
+            {formatCurrency(confirmedBooking?.total || 0, confirmedBooking?.currency, locale)}
+          </span>
+        </div>
+        {confirmedBooking?.reference ? (
+          <div className="flex items-center justify-between border-t border-white/10 pt-3">
+            <span className="text-white/50">{copy.confirmReference}</span>
+            <span className="font-mono text-xs text-white/60">{confirmedBooking.reference.slice(-8).toUpperCase()}</span>
+          </div>
+        ) : null}
+      </div>
+
+      <button
+        type="button"
+        onClick={handleBookAnother}
+        className="rounded-full border border-white/20 px-6 py-2 text-sm text-white hover:border-white/60"
+      >
+        {copy.bookAnother}
+      </button>
+    </div>
+  );
+
   const stepIndicator = (
     <div className="flex gap-3 text-xs uppercase tracking-[0.3em] text-white/40" dir={isHebrew ? "rtl" : "ltr"}>
       {copy.stepLabels.map((label, index) => {
@@ -785,37 +863,37 @@ export default function BookingPage() {
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/40">
-          {renderStep()}
-          <div className="mt-8 flex flex-wrap justify-between gap-4">
-            {step > 1 && (
-              <button
-                type="button"
-                onClick={() => setStep((prev) => Math.max(1, prev - 1))}
-                className="rounded-full border border-white/20 px-6 py-2 text-sm text-white hover:border-white/60"
-              >
-                {copy.back}
-              </button>
-            )}
-            {step < 3 && (
-              <button
-                type="button"
-                onClick={handleNext}
-                className="ml-auto rounded-full bg-white px-6 py-2 text-sm font-semibold text-black hover:bg-white/80"
-              >
-                {copy.next}
-              </button>
-            )}
-          </div>
-          {formError ? <p className="mt-4 text-sm text-red-400">{formError}</p> : null}
-          {submitState.message ? (
-            <p
-              className={`mt-4 text-sm ${
-                submitState.status === "success" ? "text-emerald-400" : "text-red-400"
-              }`}
-            >
-              {submitState.message}
-            </p>
-          ) : null}
+          {submitState.status === "success" ? (
+            renderConfirmation()
+          ) : (
+            <>
+              {renderStep()}
+              <div className="mt-8 flex flex-wrap justify-between gap-4">
+                {step > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setStep((prev) => Math.max(1, prev - 1))}
+                    className="rounded-full border border-white/20 px-6 py-2 text-sm text-white hover:border-white/60"
+                  >
+                    {copy.back}
+                  </button>
+                )}
+                {step < 3 && (
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="ml-auto rounded-full bg-white px-6 py-2 text-sm font-semibold text-black hover:bg-white/80"
+                  >
+                    {copy.next}
+                  </button>
+                )}
+              </div>
+              {formError ? <p className="mt-4 text-sm text-red-400">{formError}</p> : null}
+              {submitState.message && submitState.status === "error" ? (
+                <p className="mt-4 text-sm text-red-400">{submitState.message}</p>
+              ) : null}
+            </>
+          )}
         </div>
       </div>
     </motion.section>

@@ -1,7 +1,9 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useLocale } from "../context/LocaleContext.jsx";
 import { getTreatmentsForLocale } from "../data/treatments";
+import { useServices } from "../hooks/useServices";
 
 const BOOKING_LINK = "/booking";
 
@@ -96,7 +98,36 @@ export default function IndividualTreatments() {
   const { locale } = useLocale();
   const isHebrew = locale === "he";
   const copy = COPY[locale];
-  const treatments = getTreatmentsForLocale(locale);
+  const { services, loading, error } = useServices();
+
+  const servicesBySlug = useMemo(() => {
+    const map = {};
+    services.forEach((svc) => {
+      if (svc.slug) map[svc.slug] = svc;
+    });
+    return map;
+  }, [services]);
+
+  // Merge in live price/title/description from the database, and hide any
+  // treatment the admin has deactivated or removed — the catalog file only
+  // supplies the initial seed, not what customers currently see. A fetch error
+  // falls back to showing the static catalog as-is rather than an empty grid.
+  const treatments = useMemo(
+    () =>
+      getTreatmentsForLocale(locale)
+        .filter((item) => loading || error || servicesBySlug[item.slug])
+        .map((item) => {
+          const live = servicesBySlug[item.slug];
+          if (!live) return item;
+          return {
+            ...item,
+            title: live.translations?.[locale]?.title || live.title || item.title,
+            priceDisplay: live.translations?.[locale]?.priceDisplay || live.priceDisplay || item.priceDisplay,
+            description: live.translations?.[locale]?.description || live.description || item.description,
+          };
+        }),
+    [locale, servicesBySlug, loading, error]
+  );
 
   return (
     <motion.section
