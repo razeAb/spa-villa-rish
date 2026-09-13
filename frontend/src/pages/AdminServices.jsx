@@ -16,6 +16,8 @@ const T = {
     refresh: "רענון",
     loading: "טוען…",
     noServices: "לא נמצאו שירותים.",
+    titleHe: "שם בעברית",
+    titleEn: "שם באנגלית",
     duration: "משך (דק׳)",
     priceAmount: "מחיר",
     priceDisplay: "תצוגת מחיר",
@@ -57,6 +59,8 @@ const T = {
     refresh: "Refresh",
     loading: "Loading…",
     noServices: "No services found.",
+    titleHe: "Hebrew name",
+    titleEn: "English name",
     duration: "Duration (min)",
     priceAmount: "Price amount",
     priceDisplay: "Price display",
@@ -102,7 +106,8 @@ export default function AdminServices() {
   const [deleting, setDeleting] = useState({});
   const [uploadingImage, setUploadingImage] = useState({});
   const [createForm, setCreateForm] = useState({
-    title: "",
+    titleHe: "",
+    titleEn: "",
     priceAmount: "",
     priceDisplay: "",
     durationMin: "",
@@ -134,7 +139,8 @@ export default function AdminServices() {
       data.forEach((svc) => {
         const localizedDescription = svc?.translations?.[lang]?.description || svc?.description || "";
         map[svc._id] = {
-          title: svc.title || "",
+          titleHe: svc?.translations?.he?.title || "",
+          titleEn: svc?.translations?.en?.title || svc.title || "",
           priceAmount: svc.priceAmount || "",
           priceDisplay: svc.priceDisplay || "",
           durationMin: svc.durationMin || "",
@@ -228,17 +234,21 @@ export default function AdminServices() {
     setSaving((prev) => ({ ...prev, [id]: true }));
     try {
       const prevTranslations = draft.translations || {};
-      const langTranslation = prevTranslations[lang] || {};
       const updatedTranslations = {
-        ...prevTranslations,
-        [lang]: {
-          ...langTranslation,
-          description: draft.description,
+        en: {
+          ...(prevTranslations.en || {}),
+          title: draft.titleEn,
+          ...(lang === "en" ? { description: draft.description } : {}),
+        },
+        he: {
+          ...(prevTranslations.he || {}),
+          title: draft.titleHe,
+          ...(lang === "he" ? { description: draft.description } : {}),
         },
       };
       await api.upsertService({
         id,
-        title: draft.title,
+        title: draft.titleEn || draft.titleHe,
         description: draft.description,
         durationMin: Number(draft.durationMin),
         priceAmount: Number(draft.priceAmount),
@@ -316,7 +326,7 @@ export default function AdminServices() {
     setCreateMessage("");
     try {
       await api.upsertService({
-        title: createForm.title,
+        title: createForm.titleEn || createForm.titleHe,
         description: createForm.description,
         durationMin: Number(createForm.durationMin),
         priceAmount: Number(createForm.priceAmount),
@@ -324,9 +334,14 @@ export default function AdminServices() {
         featured: Boolean(createForm.featured),
         sortOrder: Number(createForm.sortOrder) || 0,
         heroImage: createForm.heroImage || "",
+        translations: {
+          en: { title: createForm.titleEn || createForm.titleHe, description: createForm.description },
+          he: { title: createForm.titleHe || createForm.titleEn, description: createForm.description },
+        },
       });
       setCreateForm({
-        title: "",
+        titleHe: "",
+        titleEn: "",
         priceAmount: "",
         priceDisplay: "",
         durationMin: "",
@@ -403,14 +418,27 @@ export default function AdminServices() {
                   {activeServices.map((svc) => (
                     <div key={svc._id} className="rounded-xl border border-white/10 bg-black/40 p-4">
                       <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                          <input
-                            type="text"
-                            value={drafts[svc._id]?.title || ""}
-                            onChange={(e) => handleDraftChange(svc._id, "title", e.target.value)}
-                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-base font-semibold text-white"
-                          />
-                          <p className="mt-1 text-xs text-white/60">{getServiceTitle(svc, lang)}</p>
+                        <div className="flex flex-col gap-2">
+                          <label className="text-xs text-white/70">
+                            {T[lang].titleHe}
+                            <input
+                              type="text"
+                              dir="rtl"
+                              value={drafts[svc._id]?.titleHe || ""}
+                              onChange={(e) => handleDraftChange(svc._id, "titleHe", e.target.value)}
+                              className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-base font-semibold text-white"
+                            />
+                          </label>
+                          <label className="text-xs text-white/70">
+                            {T[lang].titleEn}
+                            <input
+                              type="text"
+                              dir="ltr"
+                              value={drafts[svc._id]?.titleEn || ""}
+                              onChange={(e) => handleDraftChange(svc._id, "titleEn", e.target.value)}
+                              className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-base font-semibold text-white"
+                            />
+                          </label>
                           <p className="text-[10px] text-white/40">{svc._id}</p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -625,11 +653,23 @@ export default function AdminServices() {
               <h2 className="text-lg font-semibold text-white">{T[lang].addTitle}</h2>
               <form className="mt-4 grid gap-3 md:grid-cols-2" onSubmit={handleCreate}>
                 <label className="text-sm text-white/80">
-                  {lang === "he" ? "כותרת" : "Title"}
+                  {T[lang].titleHe}
                   <input
                     type="text"
-                    value={createForm.title}
-                    onChange={(e) => setCreateForm((p) => ({ ...p, title: e.target.value }))}
+                    dir="rtl"
+                    value={createForm.titleHe}
+                    onChange={(e) => setCreateForm((p) => ({ ...p, titleHe: e.target.value }))}
+                    className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-white"
+                    required
+                  />
+                </label>
+                <label className="text-sm text-white/80">
+                  {T[lang].titleEn}
+                  <input
+                    type="text"
+                    dir="ltr"
+                    value={createForm.titleEn}
+                    onChange={(e) => setCreateForm((p) => ({ ...p, titleEn: e.target.value }))}
                     className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-white"
                     required
                   />
