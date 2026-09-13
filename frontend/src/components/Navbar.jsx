@@ -1,16 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaChevronDown } from "react-icons/fa";
 import { useLocale } from "../context/LocaleContext.jsx";
+import { useServices } from "../hooks/useServices";
+import { getFeaturedPackages } from "../utils/featuredPackages";
 
-// These 3 ids must match FeaturedPackages.jsx's `package-${service.slug}` section
-// ids — the hero packages are now rendered dynamically from the database rather
-// than as fixed sections, so a slug change or a package no longer being featured
-// means this link simply won't find a matching section on the page.
-const PACKAGE_LINKS = [
-  { id: "package-bff-moments", label: { he: "רגעי BFF", en: "BFF Moments" } },
-  { id: "package-couple-foam-clouds", label: { he: "ענני קצף", en: "Foam Clouds" } },
-  { id: "package-couple-silk-touch", label: { he: "מגע המשי", en: "Silk Touch" } },
+// These ids are the non-package sections on the homepage — always shown after
+// the live package links below.
+const STATIC_LINKS = [
   { id: "gallery", label: { he: "גלריה", en: "Gallery" } },
   { id: "treatments", label: { he: "טיפולים אישיים", en: "Treatments" } },
   { id: "villa-stay", label: { he: "לינת וילה", en: "Villa Stay" } },
@@ -19,6 +16,17 @@ const PACKAGE_LINKS = [
 export default function Navbar() {
   const { locale } = useLocale();
   const isHebrew = locale === "he";
+  const { services } = useServices();
+
+  const packageLinks = useMemo(() => {
+    const featured = getFeaturedPackages(services)
+      .map((svc) => ({
+        id: `package-${svc.slug}`,
+        label: svc.translations?.[locale]?.title || svc.title,
+      }));
+    const staticLinks = STATIC_LINKS.map((link) => ({ id: link.id, label: link.label[locale] }));
+    return [...featured, ...staticLinks];
+  }, [services, locale]);
 
   const [open, setOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -78,14 +86,14 @@ export default function Navbar() {
               dir={isHebrew ? "rtl" : "ltr"}
             >
               <div className="flex flex-col gap-1">
-                {PACKAGE_LINKS.map((pkg) => (
+                {packageLinks.map((pkg) => (
                   <a
                     key={pkg.id}
                     href={`#${pkg.id}`}
                     onClick={() => setOpen(false)}
                     className={`rounded-md px-3 py-2 text-xs text-white/80 transition hover:bg-white/10 hover:text-white ${isHebrew ? "" : "uppercase tracking-[0.3em]"}`}
                   >
-                    {pkg.label[locale]}
+                    {pkg.label}
                   </a>
                 ))}
               </div>
@@ -134,7 +142,7 @@ export default function Navbar() {
             </div>
 
             <nav className="mt-6 space-y-2">
-              {PACKAGE_LINKS.map((pkg) => (
+              {packageLinks.map((pkg) => (
                 <a
                   key={pkg.id}
                   href={`#${pkg.id}`}
@@ -143,7 +151,7 @@ export default function Navbar() {
                     isHebrew ? "" : "uppercase tracking-[0.25em]"
                   }`}
                 >
-                  {pkg.label[locale]}
+                  {pkg.label}
                 </a>
               ))}
             </nav>

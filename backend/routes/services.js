@@ -43,6 +43,17 @@ router.get("/", async (_req, res) => {
   }
 });
 
+// Admin list including deactivated services, so a deactivation can be undone
+router.get("/admin/all", auth, async (_req, res) => {
+  try {
+    const services = await Service.find({}).sort({ title: 1 }).lean();
+    res.json(services);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // Minimal admin endpoint to add/update services
 router.post("/", auth, async (req, res) => {
   try {

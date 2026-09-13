@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useLocale } from "../context/LocaleContext.jsx";
 import { useServices } from "../hooks/useServices";
+import { getFeaturedPackages } from "../utils/featuredPackages";
 
 const COPY = {
   he: { kicker: "חבילות +", cta: "שריין מקום" },
@@ -75,9 +76,7 @@ export default function FeaturedPackages() {
   const isHebrew = locale === "he";
   const copy = COPY[locale];
 
-  const featured = services
-    .filter((svc) => svc.featured)
-    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+  const featured = getFeaturedPackages(services);
 
   return (
     <>

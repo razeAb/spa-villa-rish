@@ -74,6 +74,7 @@ const request = async (path, { method = "GET", body, auth = false } = {}) => {
 export const api = {
   login: (username, password) => request("/auth/login", { method: "POST", body: { username, password } }),
   listServices: () => request("/services"),
+  listAllServicesAdmin: () => request("/services/admin/all", { auth: true }),
   upsertService: (payload) => request("/services", { method: "POST", body: payload, auth: true }),
   deleteService: (id) => request(`/services/${id}`, { method: "DELETE", auth: true }),
   uploadImage: async (file) => {

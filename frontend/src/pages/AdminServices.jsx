@@ -11,6 +11,7 @@ const T = {
     console: "קונסולת אדמין",
     back: "חזרה לאתר",
     loginPrompt: "התחברו דרך קונסולת האדמין כדי לערוך.",
+    sessionExpired: "החיבור פג תוקף. נכנסתם מחדש דרך קונסולת האדמין כדי לערוך או לראות שירותים מושבתים.",
     active: "שירותים פעילים",
     refresh: "רענון",
     loading: "טוען…",
@@ -21,6 +22,10 @@ const T = {
     save: "שמור",
     saving: "שומר…",
     deactivate: "השבת",
+    deactivateConfirm: "להשבית את השירות? הוא ייעלם מהאתר ומרשימה זו עד שתשוחזר.",
+    reactivate: "שחזר",
+    deactivatedSection: "שירותים מושבתים",
+    deactivatedHint: "שירותים מושבתים לא מוצגים באתר. לחצו \"שחזר\" כדי להחזיר.",
     deletePermanently: "מחק לצמיתות",
     deleteConfirm: "למחוק את השירות לצמיתות? לא ניתן לשחזר.",
     addTitle: "הוספת שירות",
@@ -47,6 +52,7 @@ const T = {
     console: "Admin console",
     back: "← Back to site",
     loginPrompt: "Please log in via the Admin console first.",
+    sessionExpired: "Your session expired. Log back in via the Admin console to edit or see deactivated services.",
     active: "Active services",
     refresh: "Refresh",
     loading: "Loading…",
@@ -57,6 +63,10 @@ const T = {
     save: "Save",
     saving: "Saving…",
     deactivate: "Deactivate",
+    deactivateConfirm: "Deactivate this service? It will disappear from the site and this list until reactivated.",
+    reactivate: "Reactivate",
+    deactivatedSection: "Deactivated services",
+    deactivatedHint: "Deactivated services aren't shown on the site. Click \"Reactivate\" to bring one back.",
     deletePermanently: "Delete permanently",
     deleteConfirm: "Permanently delete this service? This can't be undone.",
     addTitle: "Add service",
@@ -108,7 +118,17 @@ export default function AdminServices() {
     setLoading(true);
     setError("");
     try {
-      const data = await api.listServices();
+      let data;
+      try {
+        data = await api.listAllServicesAdmin();
+      } catch (err) {
+        if (err?.status === 401 || err?.status === 403) {
+          data = await api.listServices();
+          setError(T[lang].sessionExpired);
+        } else {
+          throw err;
+        }
+      }
       setServices(data);
       const map = {};
       data.forEach((svc) => {
@@ -246,7 +266,10 @@ export default function AdminServices() {
     }
   };
 
-  const handleToggleActive = (id, next) => handleSave(id, { isActive: next });
+  const handleToggleActive = (id, next) => {
+    if (!next && !window.confirm(T[lang].deactivateConfirm)) return;
+    return handleSave(id, { isActive: next });
+  };
 
   const handleDelete = async (id) => {
     if (!window.confirm(T[lang].deleteConfirm)) return;
@@ -320,6 +343,7 @@ export default function AdminServices() {
   };
 
   const activeServices = useMemo(() => services.filter((s) => s.isActive !== false), [services]);
+  const inactiveServices = useMemo(() => services.filter((s) => s.isActive === false), [services]);
 
   return (
     <div className="min-h-screen bg-black text-white" dir={lang === "he" ? "rtl" : "ltr"}>
@@ -569,6 +593,33 @@ export default function AdminServices() {
                 </div>
               )}
             </section>
+
+            {inactiveServices.length ? (
+              <section className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 shadow-inner">
+                <h2 className="text-lg font-semibold text-white">{T[lang].deactivatedSection}</h2>
+                <p className="mt-1 text-xs text-white/60">{T[lang].deactivatedHint}</p>
+                <div className="mt-4 space-y-2">
+                  {inactiveServices.map((svc) => (
+                    <div
+                      key={svc._id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/40 p-3"
+                    >
+                      <div>
+                        <p className="text-sm text-white">{getServiceTitle(svc, lang)}</p>
+                        <p className="text-[10px] text-white/40">{svc._id}</p>
+                      </div>
+                      <button
+                        onClick={() => handleSave(svc._id, { isActive: true })}
+                        disabled={saving[svc._id]}
+                        className="rounded-lg bg-white/90 px-3 py-1 text-sm font-semibold text-black hover:bg-white disabled:opacity-60"
+                      >
+                        {saving[svc._id] ? T[lang].saving : T[lang].reactivate}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
             <section className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner">
               <h2 className="text-lg font-semibold text-white">{T[lang].addTitle}</h2>
