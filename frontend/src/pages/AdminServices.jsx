@@ -238,11 +238,13 @@ export default function AdminServices() {
         en: {
           ...(prevTranslations.en || {}),
           title: draft.titleEn,
+          priceDisplay: draft.priceDisplay,
           ...(lang === "en" ? { description: draft.description } : {}),
         },
         he: {
           ...(prevTranslations.he || {}),
           title: draft.titleHe,
+          priceDisplay: draft.priceDisplay,
           ...(lang === "he" ? { description: draft.description } : {}),
         },
       };
@@ -335,8 +337,16 @@ export default function AdminServices() {
         sortOrder: Number(createForm.sortOrder) || 0,
         heroImage: createForm.heroImage || "",
         translations: {
-          en: { title: createForm.titleEn || createForm.titleHe, description: createForm.description },
-          he: { title: createForm.titleHe || createForm.titleEn, description: createForm.description },
+          en: {
+            title: createForm.titleEn || createForm.titleHe,
+            description: createForm.description,
+            priceDisplay: createForm.priceDisplay || "",
+          },
+          he: {
+            title: createForm.titleHe || createForm.titleEn,
+            description: createForm.description,
+            priceDisplay: createForm.priceDisplay || "",
+          },
         },
       });
       setCreateForm({

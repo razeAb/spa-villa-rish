@@ -6,12 +6,17 @@ const router = express.Router();
 
 const ALLOWED_CATEGORIES = ["massage", "group", "other"];
 
-const slugify = (value = "") =>
-  value
+// Only keeps a-z0-9, so a title with no Latin characters (e.g. Hebrew-only)
+// collapses to "" — fall back to a generated slug so it never collides with
+// another such title and violates the unique index.
+const slugify = (value = "") => {
+  const base = value
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+  return base || `svc-${Date.now().toString(36)}`;
+};
 
 const normalizeAddOns = (addOns = []) => {
   if (!Array.isArray(addOns)) return [];
