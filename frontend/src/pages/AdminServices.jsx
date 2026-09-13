@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Wrench, ArrowLeftRight } from "lucide-react";
 import { api, getAuthToken } from "../api/client";
+import AdminNav from "../components/AdminNav.jsx";
 
 const T = {
   he: {
@@ -383,26 +384,7 @@ export default function AdminServices() {
               <p className="text-xs text-white/60">{T[lang].subtitle}</p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
-            <Link to="/admin/calendar" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
-              {T[lang].calendar}
-            </Link>
-            <Link to="/admin/gallery" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
-              {T[lang].gallery}
-            </Link>
-            <Link to="/admin" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
-              {T[lang].console}
-            </Link>
-            <Link to="/admin/guide" target="_blank" rel="noreferrer" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
-              {lang === "he" ? "מדריך" : "Guide"}
-            </Link>
-            <Link to="/" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
-              {T[lang].back}
-            </Link>
-            <button onClick={toggleLang} className="rounded-lg border border-white/20 px-3 py-1 hover:bg-white/10">
-              {lang === "he" ? "English" : "עברית"}
-            </button>
-          </div>
+          <AdminNav lang={lang} onToggleLang={toggleLang} currentPath="/admin/services" />
         </div>
       </header>
 

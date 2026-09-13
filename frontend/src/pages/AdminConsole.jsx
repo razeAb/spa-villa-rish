@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { api, getAuthToken, setAuthToken } from "../api/client";
+import AdminNav from "../components/AdminNav.jsx";
 
 const T = {
   he: {
@@ -314,34 +314,7 @@ export default function AdminConsole() {
       <header className="border-b border-white/10 bg-black/70 px-6 py-4 backdrop-blur">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
           <h1 className="text-xl font-semibold">{T[lang].title}</h1>
-            <div className="flex flex-wrap items-center gap-3 text-sm text-white/70">
-              <Link to="/admin/calendar" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
-                {T[lang].calendar}
-              </Link>
-              <Link to="/admin/history" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
-                {lang === "he" ? "היסטוריה" : "History"}
-              </Link>
-              <Link to="/admin/services" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
-                {T[lang].services}
-              </Link>
-              <Link to="/admin/gallery" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
-                {lang === "he" ? "גלריה" : "Gallery"}
-              </Link>
-              <Link
-                to="/admin/guide"
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10"
-              >
-                {lang === "he" ? "מדריך" : "Guide"}
-              </Link>
-              <Link to="/" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
-                {T[lang].back}
-              </Link>
-            <button onClick={toggleLang} className="rounded-lg border border-white/20 px-3 py-1 hover:bg-white/10">
-              {lang === "he" ? "English" : "עברית"}
-            </button>
-          </div>
+            <AdminNav lang={lang} onToggleLang={toggleLang} currentPath="/admin" />
         </div>
       </header>
 

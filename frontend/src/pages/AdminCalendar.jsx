@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { Calendar, LogOut, RefreshCcw, Wrench } from "lucide-react";
 import { api, getAuthToken, setAuthToken } from "../api/client";
+import AdminNav from "../components/AdminNav.jsx";
 import "./AdminCalendar.css";
 
 const toDateIso = (date) => date.toISOString().slice(0, 10);
@@ -457,7 +457,7 @@ export default function AdminCalendar() {
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-black text-white" dir={lang === "he" ? "rtl" : "ltr"}>
       {/* HEADER */}
       <header className="border-b border-white/10 bg-black/70 px-6 py-4 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Calendar className="h-6 w-6 text-white" />
             <div>
@@ -466,17 +466,7 @@ export default function AdminCalendar() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-sm text-white/80">
-            <Link to="/admin/services" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
-              {lang === "he" ? "ניהול חבילות" : "Manage services"}
-            </Link>
-            <Link to="/admin" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
-              {lang === "he" ? "קונסולת אדמין" : "Admin console"}
-            </Link>
-            <button onClick={toggleLang} className="rounded-lg border border-white/20 px-3 py-1 text-sm text-white/80 hover:bg-white/10">
-              {T[lang].langButton}
-            </button>
-          </div>
+          <AdminNav lang={lang} onToggleLang={toggleLang} currentPath="/admin/calendar" />
         </div>
       </header>
 

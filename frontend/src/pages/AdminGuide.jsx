@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import AdminNav from "../components/AdminNav.jsx";
 
 const guideContent = [
   {
@@ -87,25 +88,9 @@ export default function AdminGuide() {
   return (
     <div className="min-h-screen bg-black text-white">
       <header className="border-b border-white/10 bg-black/70 px-6 py-4 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
           <h1 className="text-xl font-semibold">Admin Guide / מדריך אדמין</h1>
-          <div className="flex items-center gap-3 text-sm text-white/70">
-            <Link to="/admin" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
-              Admin
-            </Link>
-            <Link to="/admin/calendar" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
-              Calendar
-            </Link>
-            <Link to="/admin/services" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
-              Services
-            </Link>
-            <Link to="/admin/history" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
-              History
-            </Link>
-            <Link to="/" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
-              ← Back to site
-            </Link>
-          </div>
+          <AdminNav lang="he" currentPath="/admin/guide" />
         </div>
       </header>
       <main className="mx-auto w-full max-w-4xl px-6 py-10 space-y-8">
