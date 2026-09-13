@@ -8,6 +8,7 @@ import BookingPage from "./pages/BookingPage.jsx";
 import AdminConsole from "./pages/AdminConsole.jsx";
 import AdminCalendar from "./pages/AdminCalendar.jsx";
 import AdminServices from "./pages/AdminServices.jsx";
+import AdminGallery from "./pages/AdminGallery.jsx";
 import AdminGuide from "./pages/AdminGuide.jsx";
 import AdminHistory from "./pages/AdminHistory.jsx";
 import "./index.css";
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/admin" element={<AdminConsole />} />
         <Route path="/admin/calendar" element={<AdminCalendar />} />
         <Route path="/admin/services" element={<AdminServices />} />
+        <Route path="/admin/gallery" element={<AdminGallery />} />
         <Route path="/admin/history" element={<AdminHistory />} />
         <Route path="/admin/guide" element={<AdminGuide />} />
       </Routes>

@@ -312,9 +312,9 @@ export default function AdminConsole() {
   return (
     <div className="min-h-screen bg-black text-white" dir={lang === "he" ? "rtl" : "ltr"}>
       <header className="border-b border-white/10 bg-black/70 px-6 py-4 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
           <h1 className="text-xl font-semibold">{T[lang].title}</h1>
-            <div className="flex items-center gap-3 text-sm text-white/70">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-white/70">
               <Link to="/admin/calendar" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
                 {T[lang].calendar}
               </Link>
@@ -323,6 +323,9 @@ export default function AdminConsole() {
               </Link>
               <Link to="/admin/services" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
                 {T[lang].services}
+              </Link>
+              <Link to="/admin/gallery" className="rounded-lg border border-white/15 px-3 py-1 hover:text-white hover:bg-white/10">
+                {lang === "he" ? "גלריה" : "Gallery"}
               </Link>
               <Link
                 to="/admin/guide"

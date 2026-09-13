@@ -128,4 +128,8 @@ export const api = {
   authorizePayment: (payload) => request("/payments/authorize", { method: "POST", body: payload }),
   getSettings: () => request("/settings"),
   updateSettings: (payload) => request("/settings", { method: "PUT", body: payload, auth: true }),
+  listGalleryPhotos: () => request("/gallery"),
+  addGalleryPhoto: (payload) => request("/gallery", { method: "POST", body: payload, auth: true }),
+  updateGalleryPhoto: (id, payload) => request(`/gallery/${id}`, { method: "PATCH", body: payload, auth: true }),
+  deleteGalleryPhoto: (id) => request(`/gallery/${id}`, { method: "DELETE", auth: true }),
 };

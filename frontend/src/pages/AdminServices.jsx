@@ -8,6 +8,7 @@ const T = {
     header: "אדמין · שירותים",
     subtitle: "ניהול שמות, מחירים, משך וזמינות.",
     calendar: "לוח שנה",
+    gallery: "גלריה",
     console: "קונסולת אדמין",
     back: "חזרה לאתר",
     loginPrompt: "התחברו דרך קונסולת האדמין כדי לערוך.",
@@ -51,6 +52,7 @@ const T = {
     header: "Admin · Services",
     subtitle: "Manage titles, prices, durations, and availability.",
     calendar: "Calendar",
+    gallery: "Gallery",
     console: "Admin console",
     back: "← Back to site",
     loginPrompt: "Please log in via the Admin console first.",
@@ -384,6 +386,9 @@ export default function AdminServices() {
           <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
             <Link to="/admin/calendar" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
               {T[lang].calendar}
+            </Link>
+            <Link to="/admin/gallery" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
+              {T[lang].gallery}
             </Link>
             <Link to="/admin" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
               {T[lang].console}

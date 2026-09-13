@@ -8,6 +8,7 @@
     "start": "node index.js",
     "seed": "node scripts/seedDemoData.js",
     "sync:catalog": "node scripts/syncCatalog.js",
+    "seed:gallery": "node scripts/seedGalleryFromStatic.js",
     "backfill:featured": "node scripts/backfillFeaturedPackages.js",
     "test": "node --test",
     "backup": "node scripts/backupMongo.js"

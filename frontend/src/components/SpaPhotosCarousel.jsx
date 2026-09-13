@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useLocale } from "../context/LocaleContext.jsx";
+import { useGalleryPhotos } from "../hooks/useGalleryPhotos";
 
-const IMAGE_NAMES = [
+// Fallback only for the rare case the gallery API is unreachable/empty —
+// normally photos come live from the database (admin-managed).
+const FALLBACK_IMAGE_NAMES = [
   "DSC_6847.jpg",
   "DSC_6851.jpg",
   "DSC_6853.jpg",
@@ -25,7 +28,15 @@ export default function SpaPhotosCarousel() {
   const { locale } = useLocale();
   const isHebrew = locale === "he";
   const [index, setIndex] = useState(0);
-  const images = useMemo(() => IMAGE_NAMES.map((name) => `/spa-photos/${encodeURIComponent(name)}`), []);
+  const { photos } = useGalleryPhotos();
+  const images = useMemo(() => {
+    if (photos.length) return photos.map((photo) => photo.url);
+    return FALLBACK_IMAGE_NAMES.map((name) => `/spa-photos/${encodeURIComponent(name)}`);
+  }, [photos]);
+
+  useEffect(() => {
+    if (index >= images.length) setIndex(0);
+  }, [images.length, index]);
 
   useEffect(() => {
     const timer = setInterval(() => {

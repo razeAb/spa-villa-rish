@@ -10,6 +10,7 @@ const services = require("./routes/services");
 const payments = require("./routes/payments");
 const settingsRoute = require("./routes/settings");
 const uploads = require("./routes/uploads");
+const gallery = require("./routes/gallery");
 const { generalLimiter, loginLimiter } = require("./middleware/rateLimit");
 const requestLogger = require("./middleware/logger");
 
@@ -38,6 +39,7 @@ app.use("/api/services", services);
 app.use("/api/payments", payments);
 app.use("/api/settings", settingsRoute);
 app.use("/api/uploads", uploads);
+app.use("/api/gallery", gallery);
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
