@@ -348,7 +348,7 @@ export default function AdminServices() {
   return (
     <div className="min-h-screen bg-black text-white" dir={lang === "he" ? "rtl" : "ltr"}>
       <header className="border-b border-white/10 bg-black/70 px-6 py-4 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Wrench className="h-6 w-6 text-white" />
             <div>
@@ -356,7 +356,7 @@ export default function AdminServices() {
               <p className="text-xs text-white/60">{T[lang].subtitle}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 text-sm text-white/80">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
             <Link to="/admin/calendar" className="rounded-lg border border-white/15 px-3 py-1 hover:bg-white/10">
               {T[lang].calendar}
             </Link>
@@ -408,9 +408,9 @@ export default function AdminServices() {
                             type="text"
                             value={drafts[svc._id]?.title || ""}
                             onChange={(e) => handleDraftChange(svc._id, "title", e.target.value)}
-                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-white"
+                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-base font-semibold text-white"
                           />
-                          <p className="text-xs text-white/60">{getServiceTitle(svc, lang)}</p>
+                          <p className="mt-1 text-xs text-white/60">{getServiceTitle(svc, lang)}</p>
                           <p className="text-[10px] text-white/40">{svc._id}</p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -447,8 +447,8 @@ export default function AdminServices() {
                           <textarea
                             value={drafts[svc._id]?.description ?? ""}
                             onChange={(e) => handleDraftChange(svc._id, "description", e.target.value)}
-                            className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
-                            rows={2}
+                            className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm leading-relaxed text-white"
+                            rows={6}
                           />
                         </label>
 
@@ -668,8 +668,8 @@ export default function AdminServices() {
                   <textarea
                     value={createForm.description}
                     onChange={(e) => setCreateForm((p) => ({ ...p, description: e.target.value }))}
-                    className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-white"
-                    rows={2}
+                    className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm leading-relaxed text-white"
+                    rows={6}
                   />
                 </label>
 
