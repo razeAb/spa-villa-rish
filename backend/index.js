@@ -10,7 +10,6 @@ const services = require("./routes/services");
 const payments = require("./routes/payments");
 const settingsRoute = require("./routes/settings");
 const uploads = require("./routes/uploads");
-const { ensureCatalogServices } = require("./utils/catalog");
 const { generalLimiter, loginLimiter } = require("./middleware/rateLimit");
 const requestLogger = require("./middleware/logger");
 
@@ -54,8 +53,6 @@ mongoose
   .connect(mongoUri, { dbName: process.env.DB_NAME || "spa_booking" })
   .then(async () => {
     console.log("Connected to MongoDB");
-    await ensureCatalogServices();
-    console.log("Catalog services synced");
     app.listen(PORT, () => console.log(`API running on :${PORT}`));
   })
   .catch((err) => {
