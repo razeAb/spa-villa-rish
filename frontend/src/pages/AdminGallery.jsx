@@ -24,8 +24,8 @@ const T = {
     delete: "מחק",
     deleting: "מוחק…",
     deleteConfirm: "למחוק את התמונה הזו לצמיתות? לא ניתן לשחזר.",
-    addTitle: "הוספת תמונה",
-    uploadPhoto: "העלאת תמונה",
+    addTitle: "הוספת תמונה או וידאו",
+    uploadPhoto: "העלאת תמונה או וידאו",
     uploading: "מעלה…",
   },
   en: {
@@ -47,8 +47,8 @@ const T = {
     delete: "Delete",
     deleting: "Deleting…",
     deleteConfirm: "Permanently delete this photo? This can't be undone.",
-    addTitle: "Add photo",
-    uploadPhoto: "Upload photo",
+    addTitle: "Add photo or video",
+    uploadPhoto: "Upload photo or video",
     uploading: "Uploading…",
   },
 };
@@ -121,9 +121,10 @@ export default function AdminGallery() {
     setUploading(true);
     setError("");
     try {
+      const mediaType = file.type.startsWith("video/") ? "video" : "image";
       const { url } = await api.uploadImage(file);
       const nextSortOrder = photos.length ? Math.max(...photos.map((p) => p.sortOrder || 0)) + 1 : 1;
-      await api.addGalleryPhoto({ url, sortOrder: nextSortOrder });
+      await api.addGalleryPhoto({ url, mediaType, sortOrder: nextSortOrder });
       await loadPhotos();
     } catch (err) {
       setError(err?.payload?.error || err.message || (lang === "he" ? "שגיאה בהעלאת תמונה" : "Failed to upload photo"));
@@ -172,11 +173,22 @@ export default function AdminGallery() {
                 <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {photos.map((photo) => (
                     <div key={photo._id} className="rounded-xl border border-white/10 bg-black/40 p-3">
-                      <img
-                        src={photo.url}
-                        alt=""
-                        className="h-40 w-full rounded-lg border border-white/10 object-cover"
-                      />
+                      {photo.mediaType === "video" ? (
+                        <video
+                          src={photo.url}
+                          className="h-40 w-full rounded-lg border border-white/10 object-cover"
+                          muted
+                          loop
+                          playsInline
+                          controls
+                        />
+                      ) : (
+                        <img
+                          src={photo.url}
+                          alt=""
+                          className="h-40 w-full rounded-lg border border-white/10 object-cover"
+                        />
+                      )}
                       <div className="mt-3 flex items-center gap-2">
                         <label className="flex-1 text-xs text-white/70">
                           {T[lang].sortOrder}
@@ -221,7 +233,7 @@ export default function AdminGallery() {
                 {uploading ? T[lang].uploading : T[lang].uploadPhoto}
                 <input
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
                   className="hidden"
                   disabled={uploading}
                   onChange={(e) => handleUpload(e.target.files?.[0])}

@@ -30,8 +30,8 @@ export default function SpaPhotosCarousel() {
   const [index, setIndex] = useState(0);
   const { photos } = useGalleryPhotos();
   const images = useMemo(() => {
-    if (photos.length) return photos.map((photo) => photo.url);
-    return FALLBACK_IMAGE_NAMES.map((name) => `/spa-photos/${encodeURIComponent(name)}`);
+    if (photos.length) return photos.map((photo) => ({ src: photo.url, mediaType: photo.mediaType || "image" }));
+    return FALLBACK_IMAGE_NAMES.map((name) => ({ src: `/spa-photos/${encodeURIComponent(name)}`, mediaType: "image" }));
   }, [photos]);
 
   useEffect(() => {
@@ -80,19 +80,31 @@ export default function SpaPhotosCarousel() {
 
         <div className="relative flex-1 overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-2xl shadow-black/40">
           <div className="relative h-[45vh] min-h-[260px] sm:h-[55vh] sm:min-h-[320px] lg:h-[62vh]">
-            {images.map((src, idx) => (
+            {images.map((item, idx) => (
               <div
-                key={src}
+                key={item.src}
                 className={`absolute inset-0 transition-opacity duration-700 ease-out ${
                   idx === index ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
               >
-                <img
-                  src={src}
-                  alt={`${copy.heading} ${idx + 1}`}
-                  className="h-full w-full object-cover"
-                  loading={idx === 0 ? "eager" : "lazy"}
-                />
+                {item.mediaType === "video" ? (
+                  <video
+                    src={item.src}
+                    className="h-full w-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload={idx === 0 ? "auto" : "metadata"}
+                  />
+                ) : (
+                  <img
+                    src={item.src}
+                    alt={`${copy.heading} ${idx + 1}`}
+                    className="h-full w-full object-cover"
+                    loading={idx === 0 ? "eager" : "lazy"}
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
               </div>
             ))}

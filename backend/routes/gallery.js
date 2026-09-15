@@ -18,11 +18,14 @@ router.get("/", async (_req, res) => {
 // Admin: add a photo (url comes from POST /api/uploads)
 router.post("/", auth, async (req, res) => {
   try {
-    const { url, sortOrder = 0 } = req.body;
+    const { url, sortOrder = 0, mediaType = "image" } = req.body;
     if (!url || typeof url !== "string") {
       return res.status(400).json({ error: "url is required" });
     }
-    const doc = await GalleryPhoto.create({ url, sortOrder: Number(sortOrder) || 0 });
+    if (!["image", "video"].includes(mediaType)) {
+      return res.status(400).json({ error: "mediaType must be 'image' or 'video'" });
+    }
+    const doc = await GalleryPhoto.create({ url, mediaType, sortOrder: Number(sortOrder) || 0 });
     res.status(201).json(doc);
   } catch (err) {
     console.error(err);

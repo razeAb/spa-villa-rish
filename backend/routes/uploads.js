@@ -10,14 +10,17 @@ const ALLOWED_MIME = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "video/quicktime": "mov",
 };
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (!ALLOWED_MIME[file.mimetype]) {
-      return cb(new Error("Unsupported image type. Use JPEG, PNG, or WebP."));
+      return cb(new Error("Unsupported file type. Use JPEG, PNG, WebP, MP4, WebM, or MOV."));
     }
     cb(null, true);
   },
