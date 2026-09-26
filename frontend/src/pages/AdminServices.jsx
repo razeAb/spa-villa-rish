@@ -22,7 +22,8 @@ const T = {
     titleEn: "שם באנגלית",
     duration: "משך (דק׳)",
     priceAmount: "מחיר",
-    priceDisplay: "תצוגת מחיר",
+    priceDisplayHe: "תצוגת מחיר בעברית",
+    priceDisplayEn: "תצוגת מחיר באנגלית",
     save: "שמור",
     saving: "שומר…",
     deactivate: "השבת",
@@ -66,7 +67,8 @@ const T = {
     titleEn: "English name",
     duration: "Duration (min)",
     priceAmount: "Price amount",
-    priceDisplay: "Price display",
+    priceDisplayHe: "Hebrew price display",
+    priceDisplayEn: "English price display",
     save: "Save",
     saving: "Saving…",
     deactivate: "Deactivate",
@@ -112,7 +114,8 @@ export default function AdminServices() {
     titleHe: "",
     titleEn: "",
     priceAmount: "",
-    priceDisplay: "",
+    priceDisplayHe: "",
+    priceDisplayEn: "",
     durationMin: "",
     description: "",
     featured: false,
@@ -145,7 +148,8 @@ export default function AdminServices() {
           titleHe: svc?.translations?.he?.title || "",
           titleEn: svc?.translations?.en?.title || svc.title || "",
           priceAmount: svc.priceAmount || "",
-          priceDisplay: svc.priceDisplay || "",
+          priceDisplayHe: svc?.translations?.he?.priceDisplay || "",
+          priceDisplayEn: svc?.translations?.en?.priceDisplay || svc.priceDisplay || "",
           durationMin: svc.durationMin || "",
           description: localizedDescription,
           isActive: svc.isActive !== false,
@@ -241,13 +245,13 @@ export default function AdminServices() {
         en: {
           ...(prevTranslations.en || {}),
           title: draft.titleEn,
-          priceDisplay: draft.priceDisplay,
+          priceDisplay: draft.priceDisplayEn,
           ...(lang === "en" ? { description: draft.description } : {}),
         },
         he: {
           ...(prevTranslations.he || {}),
           title: draft.titleHe,
-          priceDisplay: draft.priceDisplay,
+          priceDisplay: draft.priceDisplayHe,
           ...(lang === "he" ? { description: draft.description } : {}),
         },
       };
@@ -257,7 +261,7 @@ export default function AdminServices() {
         description: draft.description,
         durationMin: Number(draft.durationMin),
         priceAmount: Number(draft.priceAmount),
-        priceDisplay: draft.priceDisplay,
+        priceDisplay: draft.priceDisplayEn || draft.priceDisplayHe,
         isActive: Boolean(draft.isActive),
         featured: Boolean(draft.featured),
         sortOrder: Number(draft.sortOrder) || 0,
@@ -335,7 +339,7 @@ export default function AdminServices() {
         description: createForm.description,
         durationMin: Number(createForm.durationMin),
         priceAmount: Number(createForm.priceAmount),
-        priceDisplay: createForm.priceDisplay || "",
+        priceDisplay: createForm.priceDisplayEn || createForm.priceDisplayHe || "",
         featured: Boolean(createForm.featured),
         sortOrder: Number(createForm.sortOrder) || 0,
         heroImage: createForm.heroImage || "",
@@ -343,12 +347,12 @@ export default function AdminServices() {
           en: {
             title: createForm.titleEn || createForm.titleHe,
             description: createForm.description,
-            priceDisplay: createForm.priceDisplay || "",
+            priceDisplay: createForm.priceDisplayEn || "",
           },
           he: {
             title: createForm.titleHe || createForm.titleEn,
             description: createForm.description,
-            priceDisplay: createForm.priceDisplay || "",
+            priceDisplay: createForm.priceDisplayHe || "",
           },
         },
       });
@@ -356,7 +360,8 @@ export default function AdminServices() {
         titleHe: "",
         titleEn: "",
         priceAmount: "",
-        priceDisplay: "",
+        priceDisplayHe: "",
+        priceDisplayEn: "",
         durationMin: "",
         description: "",
         featured: false,
@@ -458,12 +463,23 @@ export default function AdminServices() {
                             />
                           </label>
                           <label className="text-xs text-white/70">
-                            {T[lang].priceDisplay}
+                            {T[lang].priceDisplayHe}
                             <input
                               type="text"
-                              value={drafts[svc._id]?.priceDisplay ?? ""}
-                              onChange={(e) => handleDraftChange(svc._id, "priceDisplay", e.target.value)}
-                              className="mt-1 w-32 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
+                              dir="rtl"
+                              value={drafts[svc._id]?.priceDisplayHe ?? ""}
+                              onChange={(e) => handleDraftChange(svc._id, "priceDisplayHe", e.target.value)}
+                              className="mt-1 w-40 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
+                            />
+                          </label>
+                          <label className="text-xs text-white/70">
+                            {T[lang].priceDisplayEn}
+                            <input
+                              type="text"
+                              dir="ltr"
+                              value={drafts[svc._id]?.priceDisplayEn ?? ""}
+                              onChange={(e) => handleDraftChange(svc._id, "priceDisplayEn", e.target.value)}
+                              className="mt-1 w-40 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
                             />
                           </label>
                         </div>
@@ -692,11 +708,22 @@ export default function AdminServices() {
                   />
                 </label>
                 <label className="text-sm text-white/80">
-                  {T[lang].priceDisplay}
+                  {T[lang].priceDisplayHe}
                   <input
                     type="text"
-                    value={createForm.priceDisplay}
-                    onChange={(e) => setCreateForm((p) => ({ ...p, priceDisplay: e.target.value }))}
+                    dir="rtl"
+                    value={createForm.priceDisplayHe}
+                    onChange={(e) => setCreateForm((p) => ({ ...p, priceDisplayHe: e.target.value }))}
+                    className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-white"
+                  />
+                </label>
+                <label className="text-sm text-white/80">
+                  {T[lang].priceDisplayEn}
+                  <input
+                    type="text"
+                    dir="ltr"
+                    value={createForm.priceDisplayEn}
+                    onChange={(e) => setCreateForm((p) => ({ ...p, priceDisplayEn: e.target.value }))}
                     className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-white"
                   />
                 </label>
