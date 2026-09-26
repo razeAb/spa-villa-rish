@@ -5,6 +5,7 @@ import AppLayout from "./components/AppLayout";
 import Home from "./pages/Home.jsx";
 import VipPackagePage from "./pages/VipPackagePage.jsx";
 import BookingPage from "./pages/BookingPage.jsx";
+import PaymentReturnPage from "./pages/PaymentReturnPage.jsx";
 import AdminConsole from "./pages/AdminConsole.jsx";
 import AdminCalendar from "./pages/AdminCalendar.jsx";
 import AdminServices from "./pages/AdminServices.jsx";
@@ -23,6 +24,7 @@ export default function App() {
           <Route index element={<Home />} />
           <Route path="vip-package" element={<VipPackagePage />} />
           <Route path="booking" element={<BookingPage />} />
+          <Route path="booking/payment-return" element={<PaymentReturnPage />} />
         </Route>
         <Route path="/admin" element={<AdminConsole />} />
         <Route path="/admin/calendar" element={<AdminCalendar />} />

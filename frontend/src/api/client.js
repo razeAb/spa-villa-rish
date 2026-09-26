@@ -107,7 +107,6 @@ export const api = {
     const params = new URLSearchParams({ serviceId, date });
     return request(`/availability?${params.toString()}`);
   },
-  createBooking: (payload) => request("/bookings", { method: "POST", body: payload }),
   listBookings: (params) => {
     const search = params
       ? new URLSearchParams(
@@ -125,7 +124,8 @@ export const api = {
     }),
   updateBooking: (id, payload) => request(`/bookings/${id}`, { method: "PUT", body: payload, auth: true }),
   deleteBooking: (id) => request(`/bookings/${id}`, { method: "DELETE", auth: true }),
-  authorizePayment: (payload) => request("/payments/authorize", { method: "POST", body: payload }),
+  startCheckout: (payload) => request("/payments/checkout", { method: "POST", body: payload }),
+  confirmHypPayment: (query) => request("/payments/hyp/confirm", { method: "POST", body: { query } }),
   getSettings: () => request("/settings"),
   updateSettings: (payload) => request("/settings", { method: "PUT", body: payload, auth: true }),
   listGalleryPhotos: () => request("/gallery"),

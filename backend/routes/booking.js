@@ -5,6 +5,7 @@ const Service = require('../models/Service');
 const Payment = require('../models/Payment');
 const auth = require('../utils/authMiddleware'); // מאמת JWT לממשקים של מנהל
 const { sendBookingConfirmation, sendAdminNotification } = require('../utils/mailer');
+const hyp = require('../utils/hyp');
 const router = express.Router();
 
 const buildSlotWindow = async (serviceId, startIso) => {
@@ -32,78 +33,20 @@ const hasClash = (serviceId, startUtc, endUtc, excludeId = null) => {
   return Booking.findOne(filter);
 };
 
-// יצירת הזמנה (לקוח)
-router.post('/', async (req,res) => {
-  try {
-    const { serviceId, customerName, phone, customerEmail, marketingOptIn, startUtc, note, paymentId } = req.body;
-    if (!serviceId || !customerName || !phone || !startUtc || !customerEmail || !paymentId) {
-      return res.status(400).json({ error: 'Missing fields' });
-    }
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customerEmail)) {
-      return res.status(400).json({ error: 'Invalid email address' });
-    }
-
-    const service = await Service.findById(serviceId);
-    if (!service) return res.status(404).json({ error: 'Service not found' });
-    if (!service.priceAmount || service.priceAmount <= 0) {
-      return res.status(400).json({ error: 'Service is missing a price' });
-    }
-
-    const start = DateTime.fromISO(startUtc, { zone: 'utc' });
-    if (!start.isValid) return res.status(400).json({ error: 'Invalid start datetime' });
-    const end = start.plus({ minutes: service.durationMin });
-
-    // בדיקת התנגשות
-    const clash = await Booking.findOne({
-      serviceId,
-      startUtc: { $lt: end.toJSDate() },
-      endUtc:   { $gt: start.toJSDate() }
-    });
-    if (clash) return res.status(409).json({ error: 'Slot already booked' });
-
-    const payment = await Payment.findById(paymentId);
-    if (!payment || payment.status !== 'authorized') {
-      return res.status(400).json({ error: 'Payment authorization is missing or invalid' });
-    }
-    if (String(payment.serviceId) !== String(serviceId)) {
-      return res.status(400).json({ error: 'Payment does not match selected service' });
-    }
-
-    const payload = {
-      serviceId, customerName, phone,
-      customerEmail,
-      marketingOptIn: Boolean(marketingOptIn),
-      startUtc: start.toJSDate(),
-      endUtc: end.toJSDate(),
-      status: 'confirmed',
-      paymentId: payment._id,
-      paymentStatus: 'captured',
-      totalAmount: payment.amount,
-      currency: payment.currency || 'ILS',
-      addOns: Array.isArray(payment.addOns) ? payment.addOns : [],
-    };
-    if (typeof note === 'string' && note.trim()) {
-      payload.note = note.trim();
-    }
-
-    const created = await Booking.create(payload);
-    payment.status = 'captured';
-    payment.bookingId = created._id;
-    await payment.save();
-
-    const serviceTitle = service.translations?.he?.title || service.title;
-    // fire-and-forget to keep response fast
-    sendBookingConfirmation(created, serviceTitle, "he").catch(console.error);
-    sendAdminNotification(created, serviceTitle).catch(console.error);
-
-    res.status(201).json(created);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Server error' });
+// Returns the customer's money through Hyp when a paid booking is canceled or deleted.
+// Mock (pre-Hyp) payments only have their DB status updated.
+const refundBookingPayment = async (paymentId) => {
+  const payment = await Payment.findById(paymentId);
+  if (!payment || payment.status === 'refunded') return;
+  if (payment.provider === 'hyp' && payment.status === 'captured' && payment.hypTransId) {
+    const reversal = await hyp.reverseTransaction(payment.hypTransId, payment.amount);
+    payment.hypRefundId = reversal.refundId || '';
   }
-});
+  payment.status = 'refunded';
+  await payment.save();
+};
 
-
+// Customer bookings are created in routes/payments.js once Hyp confirms the charge.
 
 // יצירת תור ידני (מנהל)
 router.post('/admin', auth, async (req,res) => {
@@ -193,17 +136,22 @@ router.put('/:id', auth, async (req,res) => {
     if (!booking) return res.status(404).json({ error: 'Not found' });
 
     const update = {};
-    let nextPaymentStatus = null;
+    let refundNeeded = false;
+    let restoreMockPayment = false;
 
     if (typeof status === 'string') {
       update.status = status;
       if (booking.paymentId) {
-        if (status === 'canceled') {
+        if (status === 'canceled' && booking.paymentStatus !== 'refunded') {
+          refundNeeded = true;
           update.paymentStatus = 'refunded';
-          nextPaymentStatus = 'refunded';
-        } else if (booking.paymentStatus === 'refunded') {
-          update.paymentStatus = 'captured';
-          nextPaymentStatus = 'captured';
+        } else if (status !== 'canceled' && booking.paymentStatus === 'refunded') {
+          // A real Hyp refund can't be undone; only legacy mock payments flip back.
+          const payment = await Payment.findById(booking.paymentId).lean();
+          if (payment && payment.provider !== 'hyp') {
+            update.paymentStatus = 'captured';
+            restoreMockPayment = true;
+          }
         }
       }
     }
@@ -220,11 +168,20 @@ router.put('/:id', auth, async (req,res) => {
     }
     if (!Object.keys(update).length) return res.status(400).json({ error: 'No changes provided' });
 
+    if (refundNeeded) {
+      try {
+        await refundBookingPayment(booking.paymentId);
+      } catch (err) {
+        console.error(`Refund failed for booking ${id}:`, err.message);
+        return res.status(502).json({ error: 'Refund through Hyp failed — booking was not canceled. Try again or refund from the Hyp portal.' });
+      }
+    }
+
     const saved = await Booking.findByIdAndUpdate(id, update, { new: true });
     if (!saved) return res.status(404).json({ error: 'Not found' });
 
-    if (nextPaymentStatus && booking.paymentId) {
-      await Payment.findByIdAndUpdate(booking.paymentId, { status: nextPaymentStatus });
+    if (restoreMockPayment) {
+      await Payment.findByIdAndUpdate(booking.paymentId, { status: 'captured' });
     }
 
     res.json(saved);
@@ -241,8 +198,13 @@ router.delete('/:id', auth, async (req,res) => {
     const booking = await Booking.findById(id);
     if (!booking) return res.status(404).json({ error: 'Not found' });
 
-    if (booking.paymentId) {
-      await Payment.findByIdAndUpdate(booking.paymentId, { status: 'refunded' });
+    if (booking.paymentId && booking.paymentStatus !== 'refunded') {
+      try {
+        await refundBookingPayment(booking.paymentId);
+      } catch (err) {
+        console.error(`Refund failed for booking ${id}:`, err.message);
+        return res.status(502).json({ error: 'Refund through Hyp failed — booking was not deleted. Try again or refund from the Hyp portal.' });
+      }
     }
     await Booking.findByIdAndDelete(id);
     res.json({ ok: true });

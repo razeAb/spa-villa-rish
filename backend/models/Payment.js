@@ -10,13 +10,27 @@ const PaymentSchema = new mongoose.Schema(
     provider: { type: String, default: "mock" },
     status: {
       type: String,
-      enum: ["authorized", "captured", "failed", "refunded"],
-      default: "authorized",
+      // pending: customer sent to Hyp; processing: redirect being verified (lock)
+      enum: ["pending", "processing", "authorized", "captured", "failed", "refunded"],
+      default: "pending",
     },
     maskedCard: { type: String, default: "" },
     last4: { type: String, default: "" },
     expiresOn: { type: String, default: "" },
     failureReason: { type: String, default: "" },
+    hypTransId: { type: String, default: "" },
+    hypApprovalCode: { type: String, default: "" },
+    hypRefundId: { type: String, default: "" },
+    // Booking details held until Hyp confirms the charge
+    bookingDraft: {
+      customerName: String,
+      phone: String,
+      customerEmail: String,
+      marketingOptIn: Boolean,
+      startUtc: Date,
+      note: String,
+      lang: String,
+    },
     addOns: {
       type: [
         {

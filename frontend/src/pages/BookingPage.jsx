@@ -22,30 +22,20 @@ const COPY = {
     slotsLabel: "שעות זמינות",
     noSlots: "אין שעות פנויות ביום הנבחר. נסו תאריך אחר.",
     paymentTitle: "תשלום מאובטח",
-    paymentDesc: "אנא הזינו את פרטי הוויזה כפיקדון. התשלום בפועל יתבצע בהגעה במועד ההגעה למתחם.",
-    cardNumber: "מספר כרטיס",
-    expiry: "תוקף (MM/YY)",
-    cvc: "CVV",
-    hostedField: "שדה תשלום מאובטח",
+    paymentDesc: "התשלום מתבצע בדף המאובטח של Hyp. לאחר התשלום תחזרו לכאן לאישור ההזמנה.",
+    securePaymentNote: "פרטי הכרטיס מוזנים ישירות אצל Hyp ואינם עוברים דרכנו.",
     addOnsTitle: "תוספות",
     addOnsHint: "בחרו תוספות בתשלום נוסף.",
     addOnsNone: "אין תוספות זמינות לחבילה זו.",
     totalLabel: "סה״כ לתשלום",
     next: "הבא",
     back: "חזרה",
-    pay: "שלם וסיים",
-    success: "ההזמנה התקבלה! ניצור קשר לאישור סופי.",
+    pay: "המשך לתשלום מאובטח",
     error: "אירעה תקלה, נסו שוב.",
-    confirmTitle: "ההזמנה אושרה!",
-    confirmSubtitle: "שלחנו את הפרטים למייל. נתראה בקרוב.",
-    confirmReference: "מספר הזמנה",
-    confirmWhen: "מועד",
-    confirmBookedFor: "עבור",
-    bookAnother: "קביעת תור נוסף",
+    slotTaken: "השעה שבחרתם נתפסה בינתיים. בחרו שעה אחרת.",
     validations: {
       contact: "אנא מלאו שם, טלפון ואימייל.",
       schedule: "בחרו טיפול, תאריך ושעה פנויה.",
-      payment: "מלאו את כל פרטי התשלום.",
       serviceUnavailable: "כדי להשלים הזמנה יש לבחור טיפול זמין מהמערכת.",
     },
   },
@@ -65,30 +55,20 @@ const COPY = {
     slotsLabel: "Available times",
     noSlots: "No slots available for that day. Try another date.",
     paymentTitle: "Secure payment",
-    paymentDesc: "Enter your Visa details as a deposit. The final payment is collected on arrival based on what you ordered.",
-    cardNumber: "Card number",
-    expiry: "Expiry (MM/YY)",
-    cvc: "CVV",
-    hostedField: "Hosted payment field placeholder",
+    paymentDesc: "You'll pay on Hyp's secure payment page, then return here for your booking confirmation.",
+    securePaymentNote: "Your card details are entered directly with Hyp and never pass through our site.",
     addOnsTitle: "Add-ons",
     addOnsHint: "Choose optional add-ons for an additional fee.",
     addOnsNone: "No add-ons available for this package.",
     totalLabel: "Total due",
     next: "Next",
     back: "Back",
-    pay: "Pay & finish",
-    success: "Booking received! We’ll confirm shortly.",
+    pay: "Continue to secure payment",
     error: "Something went wrong. Please try again.",
-    confirmTitle: "You're booked!",
-    confirmSubtitle: "We've emailed you the details. See you soon.",
-    confirmReference: "Booking reference",
-    confirmWhen: "When",
-    confirmBookedFor: "For",
-    bookAnother: "Book another appointment",
+    slotTaken: "That time was just taken. Please pick another slot.",
     validations: {
       contact: "Name, phone, and email are required.",
       schedule: "Pick a treatment, date, and open slot.",
-      payment: "Please fill out every payment field.",
       serviceUnavailable: "Bookings require a live service connection. Try again soon.",
     },
   },
@@ -178,10 +158,8 @@ export default function BookingPage() {
   const [reservedSlots, setReservedSlots] = useState([]);
   const [selectedAddOnIds, setSelectedAddOnIds] = useState([]);
 
-  const [payment, setPayment] = useState({ cardNumber: "", expiry: "", cvc: "" });
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
   const [formError, setFormError] = useState("");
-  const [confirmedBooking, setConfirmedBooking] = useState(null);
 
   useEffect(() => {
     if (!initialServiceSlug) return;
@@ -412,56 +390,28 @@ export default function BookingPage() {
 
   const handlePay = async (event) => {
     event.preventDefault();
-    if (!payment.cardNumber.trim() || !payment.expiry.trim() || !payment.cvc.trim()) {
-      setFormError(copy.validations.payment);
-      return;
-    }
     if (!selectedCatalogService || !selectedSlot || !serviceHasLiveId || !selectedServiceDoc) {
       setFormError(copy.validations.serviceUnavailable);
       return;
     }
     try {
       setSubmitState({ status: "loading", message: "" });
-      const authorization = await api.authorizePayment({
+      const { paymentUrl } = await api.startCheckout({
         serviceId: selectedServiceDoc._id,
-        cardNumber: payment.cardNumber.trim(),
-        expiry: payment.expiry.trim(),
-        cvc: payment.cvc.trim(),
         addOnIds: selectedAddOnIds,
-      });
-      const created = await api.createBooking({
-        serviceId: selectedServiceDoc._id,
         customerName: contact.customerName.trim(),
         customerEmail: contact.email.trim(),
         phone: contact.phone.trim(),
         marketingOptIn: contact.marketingOptIn,
         startUtc: selectedSlot.startUtc,
-        paymentId: authorization.paymentId,
+        lang: locale,
       });
-      setConfirmedBooking({
-        reference: created?._id || "",
-        customerName: contact.customerName.trim(),
-        serviceTitle: selectedCatalogService?.title || selectedServiceDoc?.title || "",
-        dateLabel: formatDateForDisplay(date, locale),
-        timeLabel: selectedSlot.label,
-        total: totalPrice,
-        currency: priceCurrency,
-      });
-      setSubmitState({ status: "success", message: copy.success });
+      // Hyp hosts the card form; it redirects back to /booking/payment-return when done.
+      window.location.assign(paymentUrl);
     } catch (err) {
-      setSubmitState({ status: "error", message: err?.payload?.error || copy.error });
+      const message = err?.status === 409 ? copy.slotTaken : err?.payload?.error || copy.error;
+      setSubmitState({ status: "error", message });
     }
-  };
-
-  const handleBookAnother = () => {
-    setStep(1);
-    setContact({ customerName: "", phone: "", email: "", marketingOptIn: false });
-    setSelectedSlot(null);
-    setSelectedAddOnIds([]);
-    setPayment({ cardNumber: "", expiry: "", cvc: "" });
-    setSubmitState({ status: "idle", message: "" });
-    setFormError("");
-    setConfirmedBooking(null);
   };
 
   const renderStep = () => {
@@ -725,42 +675,7 @@ export default function BookingPage() {
         </div>
 
         <div className="rounded-2xl border border-emerald-200/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
-          {copy.hostedField}
-        </div>
-
-        <label className="block text-sm">
-          {copy.cardNumber}
-          <input
-            type="text"
-            value={payment.cardNumber}
-            onChange={(e) => setPayment((prev) => ({ ...prev, cardNumber: e.target.value }))}
-            className="mt-1 w-full rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-white placeholder-white/40"
-            placeholder="4242 4242 4242 4242"
-          />
-        </label>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm">
-            {copy.expiry}
-            <input
-              type="text"
-              value={payment.expiry}
-              onChange={(e) => setPayment((prev) => ({ ...prev, expiry: e.target.value }))}
-              className="mt-1 w-full rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-white placeholder-white/40"
-              placeholder="06/27"
-            />
-          </label>
-
-          <label className="block text-sm">
-            {copy.cvc}
-            <input
-              type="text"
-              value={payment.cvc}
-              onChange={(e) => setPayment((prev) => ({ ...prev, cvc: e.target.value }))}
-              className="mt-1 w-full rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-white placeholder-white/40"
-              placeholder="123"
-            />
-          </label>
+          {copy.securePaymentNote}
         </div>
 
         <button
@@ -773,51 +688,6 @@ export default function BookingPage() {
       </form>
     );
   };
-
-  const renderConfirmation = () => (
-    <div className="space-y-6 text-center">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-emerald-300/40 bg-emerald-500/10 text-2xl text-emerald-300">
-        ✓
-      </div>
-      <div>
-        <h2 className="text-2xl font-semibold text-white">{copy.confirmTitle}</h2>
-        <p className="mt-2 text-sm text-white/70">{copy.confirmSubtitle}</p>
-      </div>
-
-      <div className="mx-auto max-w-md space-y-3 rounded-2xl border border-white/15 bg-white/5 p-5 text-left text-sm text-white/80" dir={isHebrew ? "rtl" : "ltr"}>
-        <div className="flex items-center justify-between">
-          <span className="text-white/50">{copy.confirmBookedFor}</span>
-          <span className="font-medium text-white">{confirmedBooking?.serviceTitle}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-white/50">{copy.confirmWhen}</span>
-          <span className="font-medium text-white">
-            {confirmedBooking?.dateLabel} · {confirmedBooking?.timeLabel}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-white/50">{copy.totalLabel}</span>
-          <span className="font-medium text-white">
-            {formatCurrency(confirmedBooking?.total || 0, confirmedBooking?.currency, locale)}
-          </span>
-        </div>
-        {confirmedBooking?.reference ? (
-          <div className="flex items-center justify-between border-t border-white/10 pt-3">
-            <span className="text-white/50">{copy.confirmReference}</span>
-            <span className="font-mono text-xs text-white/60">{confirmedBooking.reference.slice(-8).toUpperCase()}</span>
-          </div>
-        ) : null}
-      </div>
-
-      <button
-        type="button"
-        onClick={handleBookAnother}
-        className="rounded-full border border-white/20 px-6 py-2 text-sm text-white hover:border-white/60"
-      >
-        {copy.bookAnother}
-      </button>
-    </div>
-  );
 
   const stepIndicator = (
     <div className="flex gap-3 text-xs uppercase tracking-[0.3em] text-white/40" dir={isHebrew ? "rtl" : "ltr"}>
@@ -863,37 +733,31 @@ export default function BookingPage() {
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/40">
-          {submitState.status === "success" ? (
-            renderConfirmation()
-          ) : (
-            <>
-              {renderStep()}
-              <div className="mt-8 flex flex-wrap justify-between gap-4">
-                {step > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => setStep((prev) => Math.max(1, prev - 1))}
-                    className="rounded-full border border-white/20 px-6 py-2 text-sm text-white hover:border-white/60"
-                  >
-                    {copy.back}
-                  </button>
-                )}
-                {step < 3 && (
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="ml-auto rounded-full bg-white px-6 py-2 text-sm font-semibold text-black hover:bg-white/80"
-                  >
-                    {copy.next}
-                  </button>
-                )}
-              </div>
-              {formError ? <p className="mt-4 text-sm text-red-400">{formError}</p> : null}
-              {submitState.message && submitState.status === "error" ? (
-                <p className="mt-4 text-sm text-red-400">{submitState.message}</p>
-              ) : null}
-            </>
-          )}
+          {renderStep()}
+          <div className="mt-8 flex flex-wrap justify-between gap-4">
+            {step > 1 && (
+              <button
+                type="button"
+                onClick={() => setStep((prev) => Math.max(1, prev - 1))}
+                className="rounded-full border border-white/20 px-6 py-2 text-sm text-white hover:border-white/60"
+              >
+                {copy.back}
+              </button>
+            )}
+            {step < 3 && (
+              <button
+                type="button"
+                onClick={handleNext}
+                className="ml-auto rounded-full bg-white px-6 py-2 text-sm font-semibold text-black hover:bg-white/80"
+              >
+                {copy.next}
+              </button>
+            )}
+          </div>
+          {formError ? <p className="mt-4 text-sm text-red-400">{formError}</p> : null}
+          {submitState.message && submitState.status === "error" ? (
+            <p className="mt-4 text-sm text-red-400">{submitState.message}</p>
+          ) : null}
         </div>
       </div>
     </motion.section>
