@@ -25,11 +25,13 @@ function generateSlotsForDate({
     Interval.fromDateTimes(DateTime.fromJSDate(b.startUtc).toUTC(), DateTime.fromJSDate(b.endUtc).toUTC())
   );
 
+  const now = DateTime.now();
   let slots = [];
   for (let t = open; t < close; t = t.plus({ minutes: slotStepMin })) {
     const start = t;
     const end = t.plus({ minutes: serviceWithBuffer });
     if (end > close) break;
+    if (start <= now) continue; // already started or passed
 
     const startUtc = start.toUTC();
     const endUtc = end.toUTC();

@@ -100,34 +100,32 @@ export default function IndividualTreatments() {
   const copy = COPY[locale];
   const { services, loading, error } = useServices();
 
-  const servicesBySlug = useMemo(() => {
-    const map = {};
-    services.forEach((svc) => {
-      if (svc.slug) map[svc.slug] = svc;
-    });
-    return map;
-  }, [services]);
-
-  // Merge in live price/title/description from the database, and hide any
-  // treatment the admin has deactivated or removed — the catalog file only
-  // supplies the initial seed, not what customers currently see. A fetch error
-  // falls back to showing the static catalog as-is rather than an empty grid.
-  const treatments = useMemo(
-    () =>
-      getTreatmentsForLocale(locale)
-        .filter((item) => loading || error || servicesBySlug[item.slug])
-        .map((item) => {
-          const live = servicesBySlug[item.slug];
-          if (!live) return item;
-          return {
-            ...item,
-            title: live.translations?.[locale]?.title || live.title || item.title,
-            priceDisplay: live.translations?.[locale]?.priceDisplay || live.priceDisplay || item.priceDisplay,
-            description: live.translations?.[locale]?.description || live.description || item.description,
-          };
-        }),
-    [locale, servicesBySlug, loading, error]
-  );
+  // The database decides what's listed: every active service in the "massage" (personal treatments)
+  // section, including ones added in the admin panel. Featured services already appear in the
+  // packages section, so they're left out here to avoid showing the same item twice. The catalog file only fills gaps (type label,
+  // description) and is shown as-is while loading or if the fetch fails.
+  const treatments = useMemo(() => {
+    const catalog = getTreatmentsForLocale(locale);
+    if (loading || error) return catalog;
+    const catalogBySlug = Object.fromEntries(catalog.map((item, index) => [item.slug, { item, index }]));
+    return services
+      .filter((svc) => svc.category === "massage" && svc.isActive !== false && !svc.featured)
+      .map((svc) => {
+        const fallback = catalogBySlug[svc.slug];
+        const t = svc.translations?.[locale] || {};
+        return {
+          _id: svc._id,
+          slug: svc.slug,
+          title: t.title || svc.title || fallback?.item.title || "",
+          typeLabel: t.typeLabel || fallback?.item.typeLabel || "",
+          priceDisplay: t.priceDisplay || svc.priceDisplay || fallback?.item.priceDisplay || "",
+          description: t.description || svc.description || fallback?.item.description || "",
+          sortOrder: Number(svc.sortOrder) || 0,
+          catalogIndex: fallback ? fallback.index : Number.MAX_SAFE_INTEGER,
+        };
+      })
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.catalogIndex - b.catalogIndex || a.title.localeCompare(b.title));
+  }, [locale, services, loading, error]);
 
   return (
     <motion.section

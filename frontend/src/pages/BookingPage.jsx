@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { api } from "../api/client";
 import { useLocale } from "../context/LocaleContext.jsx";
 import { getAllServicesForLocale } from "../data/treatments";
@@ -22,7 +22,7 @@ const COPY = {
     slotsLabel: "שעות זמינות",
     noSlots: "אין שעות פנויות ביום הנבחר. נסו תאריך אחר.",
     paymentTitle: "תשלום מאובטח",
-    paymentDesc: "התשלום מתבצע בדף המאובטח של Hyp. לאחר התשלום תחזרו לכאן לאישור ההזמנה.",
+    paymentDesc: "התשלום מתבצע בטופס המאובטח של Hyp. בסיום התשלום תועברו לאישור ההזמנה.",
     securePaymentNote: "פרטי הכרטיס מוזנים ישירות אצל Hyp ואינם עוברים דרכנו.",
     addOnsTitle: "תוספות",
     addOnsHint: "בחרו תוספות בתשלום נוסף.",
@@ -30,12 +30,19 @@ const COPY = {
     totalLabel: "סה״כ לתשלום",
     next: "הבא",
     back: "חזרה",
-    pay: "המשך לתשלום מאובטח",
+    retryPayment: "נסו שוב",
+    loadingPayment: "טוען טופס תשלום מאובטח…",
+    paymentFrameTitle: "טופס תשלום מאובטח",
     error: "אירעה תקלה, נסו שוב.",
     slotTaken: "השעה שבחרתם נתפסה בינתיים. בחרו שעה אחרת.",
+    termsPrefix: "קראתי ואני מאשר/ת את ",
+    termsLink: "התקנון ומדיניות הביטולים",
+    privacyLink: "מדיניות הפרטיות",
+    termsJoin: " ואת ",
     validations: {
       contact: "אנא מלאו שם, טלפון ואימייל.",
       schedule: "בחרו טיפול, תאריך ושעה פנויה.",
+      terms: "יש לאשר את התקנון ומדיניות הביטולים.",
       serviceUnavailable: "כדי להשלים הזמנה יש לבחור טיפול זמין מהמערכת.",
     },
   },
@@ -55,7 +62,7 @@ const COPY = {
     slotsLabel: "Available times",
     noSlots: "No slots available for that day. Try another date.",
     paymentTitle: "Secure payment",
-    paymentDesc: "You'll pay on Hyp's secure payment page, then return here for your booking confirmation.",
+    paymentDesc: "You'll pay in Hyp's secure payment form, then see your booking confirmation.",
     securePaymentNote: "Your card details are entered directly with Hyp and never pass through our site.",
     addOnsTitle: "Add-ons",
     addOnsHint: "Choose optional add-ons for an additional fee.",
@@ -63,12 +70,19 @@ const COPY = {
     totalLabel: "Total due",
     next: "Next",
     back: "Back",
-    pay: "Continue to secure payment",
+    retryPayment: "Try again",
+    loadingPayment: "Loading secure payment form…",
+    paymentFrameTitle: "Secure payment form",
     error: "Something went wrong. Please try again.",
     slotTaken: "That time was just taken. Please pick another slot.",
+    termsPrefix: "I have read and accept the ",
+    termsLink: "terms and cancellation policy",
+    privacyLink: "privacy policy",
+    termsJoin: " and the ",
     validations: {
       contact: "Name, phone, and email are required.",
       schedule: "Pick a treatment, date, and open slot.",
+      terms: "Please accept the terms and cancellation policy.",
       serviceUnavailable: "Bookings require a live service connection. Try again soon.",
     },
   },
@@ -80,7 +94,11 @@ const sectionMotion = {
   transition: { duration: 0.5, ease: "easeOut" },
 };
 
-const todayISO = () => new Date().toISOString().slice(0, 10);
+// Calendar date as the customer sees it (toISOString would shift to UTC and land on the previous day in Israel).
+const toLocalISO = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+const todayISO = () => toLocalISO(new Date());
 
 const formatCurrency = (amount, currency = "ILS", locale = "en") => {
   try {
@@ -103,14 +121,15 @@ const buildDateWindow = (locale) => {
     const current = new Date(start);
     current.setDate(current.getDate() + index);
     return {
-      iso: current.toISOString().slice(0, 10),
+      iso: toLocalISO(current),
       weekday: current.toLocaleDateString(locale === "he" ? "he-IL" : "en-US", { weekday: "short" }),
       label: current.toLocaleDateString(locale === "he" ? "he-IL" : "en-US", { month: "short", day: "numeric" }),
     };
   });
 };
 const formatDateForDisplay = (iso, locale) => {
-  const dateObj = new Date(iso);
+  const [y, m, d] = iso.split("-").map(Number);
+  const dateObj = new Date(y, m - 1, d);
   return dateObj.toLocaleDateString(locale === "he" ? "he-IL" : "en-US", {
     weekday: "long",
     month: "long",
@@ -159,6 +178,9 @@ export default function BookingPage() {
   const [selectedAddOnIds, setSelectedAddOnIds] = useState([]);
 
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
+  const [paymentUrl, setPaymentUrl] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const checkoutStartedRef = useRef(false);
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
@@ -240,9 +262,8 @@ export default function BookingPage() {
     return map;
   }, [services]);
 
-  const serviceOptions = useMemo(
-    () =>
-      catalogServices
+  const serviceOptions = useMemo(() => {
+    const fromCatalog = catalogServices
         .map((svc) => {
           const slug = svc.slug || svc.serviceId || svc._id || svc.id || svc.title;
           if (!slug) return null;
@@ -255,9 +276,22 @@ export default function BookingPage() {
               (svc.priceAmount ? formatCurrency(svc.priceAmount, svc.priceCurrency, locale) : ""),
           };
         })
-        .filter(Boolean),
-    [catalogServices, locale]
-  );
+        .filter(Boolean);
+    // Services created in the admin panel that aren't in the static catalog file.
+    const known = new Set(fromCatalog.map((opt) => opt.slug));
+    const fromAdmin = Object.entries(servicesBySlug)
+      .filter(([slug, svc]) => !known.has(slug) && svc.isActive !== false)
+      .map(([slug, svc]) => ({
+        slug,
+        title: svc.translations?.[locale]?.title || svc.title,
+        durationMin: svc.durationMin,
+        priceDisplay:
+          svc.translations?.[locale]?.priceDisplay ||
+          svc.priceDisplay ||
+          (svc.priceAmount ? formatCurrency(svc.priceAmount, svc.priceCurrency, locale) : ""),
+      }));
+    return [...fromCatalog, ...fromAdmin];
+  }, [catalogServices, servicesBySlug, locale]);
 
   const selectedCatalogService = useMemo(() => serviceOptions.find((svc) => svc.slug === serviceSlug) || null, [serviceOptions, serviceSlug]);
 
@@ -384,19 +418,23 @@ export default function BookingPage() {
         setFormError(copy.validations.serviceUnavailable);
         return;
       }
+      if (!acceptedTerms) {
+        setFormError(copy.validations.terms);
+        return;
+      }
       setStep(3);
     }
   };
 
-  const handlePay = async (event) => {
-    event.preventDefault();
+  const startPayment = async () => {
+    checkoutStartedRef.current = true;
     if (!selectedCatalogService || !selectedSlot || !serviceHasLiveId || !selectedServiceDoc) {
       setFormError(copy.validations.serviceUnavailable);
       return;
     }
     try {
       setSubmitState({ status: "loading", message: "" });
-      const { paymentUrl } = await api.startCheckout({
+      const checkout = await api.startCheckout({
         serviceId: selectedServiceDoc._id,
         addOnIds: selectedAddOnIds,
         customerName: contact.customerName.trim(),
@@ -406,13 +444,28 @@ export default function BookingPage() {
         startUtc: selectedSlot.startUtc,
         lang: locale,
       });
-      // Hyp hosts the card form; it redirects back to /booking/payment-return when done.
-      window.location.assign(paymentUrl);
+      // Hyp's card form is embedded below; on success it loads /booking/payment-return,
+      // which lifts itself out of the iframe to show the confirmation.
+      if (import.meta.env.DEV) {
+        // Chrome blocks a public frame (Hyp) from redirecting to localhost, so local testing uses a full-page redirect.
+        window.location.assign(checkout.paymentUrl);
+        return;
+      }
+      setPaymentUrl(checkout.paymentUrl);
+      setSubmitState({ status: "idle", message: "" });
     } catch (err) {
       const message = err?.status === 409 ? copy.slotTaken : err?.payload?.error || copy.error;
       setSubmitState({ status: "error", message });
     }
   };
+
+  // Open Hyp's card form as soon as the customer reaches the payment step.
+  useEffect(() => {
+    if (step === 3 && !paymentUrl && !checkoutStartedRef.current) {
+      startPayment();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, paymentUrl]);
 
   const renderStep = () => {
     if (step === 1) {
@@ -575,7 +628,9 @@ export default function BookingPage() {
                             : "border-white/20 bg-white/5 text-white hover:border-white/60"
                         }`}
                       >
-                        <span className="block text-xs uppercase tracking-[0.3em] text-white/60">
+                        <span
+                          className={`block text-xs uppercase tracking-[0.3em] ${isSelected ? "text-black/60" : "text-white/60"}`}
+                        >
                           {option.weekday}
                         </span>
                         <span className="text-lg font-semibold">{option.label}</span>
@@ -646,7 +701,7 @@ export default function BookingPage() {
     }
 
     return (
-      <form className="space-y-6" onSubmit={handlePay}>
+      <div className="space-y-6">
         <h2 className="text-2xl font-semibold text-white">{copy.paymentTitle}</h2>
         <p className="text-mid text-white/70">{copy.paymentDesc}</p>
 
@@ -678,14 +733,28 @@ export default function BookingPage() {
           {copy.securePaymentNote}
         </div>
 
-        <button
-          type="submit"
-          className="w-full rounded-lg bg-white px-4 py-2 text-black transition hover:bg-white/80 disabled:cursor-not-allowed disabled:bg-white/50"
-          disabled={submitState.status === "loading"}
-        >
-          {submitState.status === "loading" ? "…" : copy.pay}
-        </button>
-      </form>
+        {paymentUrl ? (
+          <iframe
+            src={paymentUrl}
+            title={copy.paymentFrameTitle}
+            allow="payment"
+            allowpaymentrequest="true"
+            className="h-[560px] w-full rounded-2xl border border-white/10 bg-white"
+          />
+        ) : submitState.status === "error" ? (
+          <button
+            type="button"
+            onClick={startPayment}
+            className="w-full rounded-lg bg-white px-4 py-2 text-black transition hover:bg-white/80"
+          >
+            {copy.retryPayment}
+          </button>
+        ) : (
+          <div className="flex h-[560px] w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-sm text-white/60">
+            {copy.loadingPayment}
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -734,11 +803,35 @@ export default function BookingPage() {
 
         <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/40">
           {renderStep()}
+          {step === 2 ? (
+            <label className="mt-6 flex items-start gap-3 text-sm text-white/80">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-1 h-4 w-4 shrink-0"
+              />
+              <span>
+                {copy.termsPrefix}
+                <Link to="/terms" target="_blank" className="underline hover:text-white">
+                  {copy.termsLink}
+                </Link>
+                {copy.termsJoin}
+                <Link to="/privacy" target="_blank" className="underline hover:text-white">
+                  {copy.privacyLink}
+                </Link>
+              </span>
+            </label>
+          ) : null}
           <div className="mt-8 flex flex-wrap justify-between gap-4">
             {step > 1 && (
               <button
                 type="button"
-                onClick={() => setStep((prev) => Math.max(1, prev - 1))}
+                onClick={() => {
+                  setPaymentUrl("");
+                  checkoutStartedRef.current = false;
+                  setStep((prev) => Math.max(1, prev - 1));
+                }}
                 className="rounded-full border border-white/20 px-6 py-2 text-sm text-white hover:border-white/60"
               >
                 {copy.back}

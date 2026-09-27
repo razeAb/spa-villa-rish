@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { NavLink } from "react-router-dom";
 import { api } from "../api/client";
 import { useLocale } from "../context/LocaleContext.jsx";
+import { downloadBookingPdf } from "../utils/bookingPdf";
+import { SPA_LOCATION } from "../data/spaLocation";
 
 // Hyp redirects here after a successful payment (configured as the success URL in the Hyp portal).
 // The backend verifies the redirect with Hyp before the booking is created.
@@ -12,6 +14,7 @@ const COPY = {
     verifying: "מאמתים את התשלום…",
     confirmTitle: "ההזמנה אושרה!",
     confirmSubtitle: "שלחנו את הפרטים למייל. נתראה בקרוב.",
+    confirmSubtitleNoEmail: "שמרו את אישור ההזמנה למטה. נתראה בקרוב.",
     confirmReference: "מספר הזמנה",
     confirmWhen: "מועד",
     confirmBookedFor: "עבור",
@@ -24,11 +27,17 @@ const COPY = {
     errorBody: "אם חויבתם, ההזמנה תטופל ידנית — צרו איתנו קשר ונסדר הכל.",
     bookAgain: "חזרה להזמנה",
     home: "חזרה לאתר",
+    downloadPdf: "הורדת אישור הזמנה (PDF)",
+    directions: "איך מגיעים",
+    waze: "ניווט ב-Waze",
+    googleMaps: "ניווט ב-Google Maps",
+    preparingPdf: "מכין PDF…",
   },
   en: {
     verifying: "Verifying your payment…",
     confirmTitle: "You're booked!",
     confirmSubtitle: "We've emailed you the details. See you soon.",
+    confirmSubtitleNoEmail: "Save your booking confirmation below. See you soon.",
     confirmReference: "Booking reference",
     confirmWhen: "When",
     confirmBookedFor: "For",
@@ -41,6 +50,11 @@ const COPY = {
     errorBody: "If you were charged, we'll sort out your booking manually — please contact us.",
     bookAgain: "Back to booking",
     home: "Back to site",
+    downloadPdf: "Download confirmation (PDF)",
+    directions: "Getting here",
+    waze: "Navigate with Waze",
+    googleMaps: "Open in Google Maps",
+    preparingPdf: "Preparing PDF…",
   },
 };
 
@@ -74,8 +88,33 @@ export default function PaymentReturnPage() {
   const copy = COPY[locale];
   const isHebrew = locale === "he";
   const [state, setState] = useState({ status: "verifying", booking: null });
+  const [pdfBusy, setPdfBusy] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!state.booking || pdfBusy) return;
+    setPdfBusy(true);
+    try {
+      await downloadBookingPdf(state.booking, locale);
+    } catch (err) {
+      console.error("PDF generation failed", err);
+    } finally {
+      setPdfBusy(false);
+    }
+  };
+
+  // When Hyp's form is embedded on the booking page, its success redirect lands inside the iframe.
+  // Move the whole window here so the confirmation isn't shown in a box on the old page.
+  const insideFrame = typeof window !== "undefined" && window.top !== window.self;
+  if (insideFrame) {
+    try {
+      window.top.location.replace(window.location.href);
+    } catch {
+      /* cross-origin parent — fall through and render in place */
+    }
+  }
 
   useEffect(() => {
+    if (insideFrame) return undefined;
     // Forward the query string untouched — Hyp's signature depends on parameter order.
     const rawQuery = window.location.search;
     let alive = true;
@@ -108,7 +147,7 @@ export default function PaymentReturnPage() {
       alive = false;
       clearTimeout(timer);
     };
-  }, []);
+  }, [insideFrame]);
 
   const booking = state.booking;
 
@@ -125,7 +164,7 @@ export default function PaymentReturnPage() {
           </div>
           <div>
             <h2 className="text-2xl font-semibold text-white">{copy.confirmTitle}</h2>
-            <p className="mt-2 text-sm text-white/70">{copy.confirmSubtitle}</p>
+            <p className="mt-2 text-sm text-white/70">{booking.emailSent ? copy.confirmSubtitle : copy.confirmSubtitleNoEmail}</p>
           </div>
           <div className="mx-auto max-w-md space-y-3 rounded-2xl border border-white/15 bg-white/5 p-5 text-sm text-white/80">
             <div className="flex items-center justify-between">
@@ -145,9 +184,41 @@ export default function PaymentReturnPage() {
               <span className="font-mono text-xs text-white/60">{booking.reference.slice(-8).toUpperCase()}</span>
             </div>
           </div>
-          <NavLink to="/" className="inline-block rounded-full border border-white/20 px-6 py-2 text-sm text-white hover:border-white/60">
-            {copy.home}
-          </NavLink>
+          <div className="mx-auto max-w-md rounded-2xl border border-white/15 bg-white/5 p-5 text-sm">
+            <p className="text-white/50">{copy.directions}</p>
+            <p className="mt-1 font-medium text-white">{SPA_LOCATION.address[locale] || SPA_LOCATION.address.he}</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <a
+                href={SPA_LOCATION.wazeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full bg-[#33ccff] px-4 py-2 text-center font-semibold text-black hover:bg-[#33ccff]/85"
+              >
+                {copy.waze}
+              </a>
+              <a
+                href={SPA_LOCATION.googleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-white/20 px-4 py-2 text-center text-white hover:border-white/60"
+              >
+                {copy.googleMaps}
+              </a>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={pdfBusy}
+              className="rounded-full bg-white px-6 py-2 text-sm font-semibold text-black hover:bg-white/80 disabled:cursor-wait disabled:bg-white/60"
+            >
+              {pdfBusy ? copy.preparingPdf : copy.downloadPdf}
+            </button>
+            <NavLink to="/" className="rounded-full border border-white/20 px-6 py-2 text-sm text-white hover:border-white/60">
+              {copy.home}
+            </NavLink>
+          </div>
         </div>
       );
     }

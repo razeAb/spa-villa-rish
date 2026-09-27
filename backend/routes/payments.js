@@ -5,15 +5,17 @@ const Payment = require("../models/Payment");
 const Service = require("../models/Service");
 const Booking = require("../models/Booking");
 const hyp = require("../utils/hyp");
-const { sendBookingConfirmation, sendAdminNotification } = require("../utils/mailer");
+const { conflictServiceFilter } = require("../utils/bookingConflicts");
+const { sendBookingConfirmation, sendAdminNotification, isEnabled: mailEnabled } = require("../utils/mailer");
 
 const router = express.Router();
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-const findClash = (serviceId, startUtc, endUtc) =>
+const findClash = async (serviceId, startUtc, endUtc) =>
   Booking.findOne({
-    serviceId,
+    ...(await conflictServiceFilter(serviceId)),
+    status: { $ne: "canceled" },
     startUtc: { $lt: endUtc },
     endUtc: { $gt: startUtc },
   });
@@ -23,16 +25,30 @@ const splitName = (fullName = "") => {
   return { first: parts.shift() || "", last: parts.join(" ") };
 };
 
-const bookingSummary = (booking, service) => ({
+const bookingSummary = (booking, service, payment) => ({
   reference: String(booking._id),
+  emailSent: Boolean(mailEnabled && booking.customerEmail),
   customerName: booking.customerName,
+  customerEmail: booking.customerEmail,
+  phone: booking.phone,
   startUtc: booking.startUtc,
+  endUtc: booking.endUtc,
+  durationMin: service?.durationMin || 0,
   total: booking.totalAmount,
   currency: booking.currency,
   serviceTitle: {
     he: service?.translations?.he?.title || service?.title || "",
     en: service?.translations?.en?.title || service?.title || "",
   },
+  addOns: (booking.addOns || []).map((addOn) => ({ title: addOn.title, priceAmount: addOn.priceAmount })),
+  payment: payment
+    ? {
+        last4: payment.last4 || "",
+        approvalCode: payment.hypApprovalCode || "",
+        transactionId: payment.hypTransId || "",
+        paidAt: payment.updatedAt || payment.createdAt,
+      }
+    : null,
 });
 
 // Step 1: validate the booking, park it on a pending payment, and hand back the Hyp payment page URL.
@@ -121,6 +137,11 @@ router.post("/checkout", async (req, res) => {
 
     const { first, last } = splitName(customerName);
     const serviceTitle = service.translations?.he?.title || service.title;
+    const invoiceLang = lang === "en" ? "en" : "he";
+    const invoiceItems = [
+      { description: service.translations?.[invoiceLang]?.title || service.title, unitPrice: Number(service.priceAmount) },
+      ...resolvedAddOns.map((addOn) => ({ description: addOn.title, unitPrice: Number(addOn.priceAmount || 0) })),
+    ].filter((item) => item.unitPrice > 0);
     const paymentUrl = await hyp.createPaymentPageUrl({
       amount,
       currency,
@@ -131,6 +152,7 @@ router.post("/checkout", async (req, res) => {
       email: customerEmail.trim(),
       cell: phone.trim(),
       lang,
+      items: invoiceItems,
     });
 
     res.status(201).json({ paymentUrl });
@@ -162,10 +184,12 @@ router.post("/hyp/confirm", async (req, res) => {
       const existing = await Payment.findById(order);
       if (!existing) return res.status(404).json({ status: "invalid", error: "Payment not found" });
       if (existing.status === "processing") return res.status(202).json({ status: "processing" });
-      if (existing.status === "captured" && existing.bookingId) {
+      // Only the payer has Hyp's transaction Id, so require it before returning booking details —
+      // the order id alone is guessable and would expose the customer's contact info.
+      if (existing.status === "captured" && existing.bookingId && params.get("Id") === existing.hypTransId) {
         const booking = await Booking.findById(existing.bookingId);
         const service = await Service.findById(existing.serviceId).lean();
-        if (booking) return res.json({ status: "confirmed", booking: bookingSummary(booking, service) });
+        if (booking) return res.json({ status: "confirmed", booking: bookingSummary(booking, service, existing) });
       }
       if (existing.status === "refunded" && existing.failureReason === "slot_taken") {
         return res.status(409).json({ status: "slot_taken" });
@@ -257,12 +281,14 @@ router.post("/hyp/confirm", async (req, res) => {
     payment.bookingId = booking._id;
     await payment.save();
 
-    const serviceTitle = service.translations?.he?.title || service.title;
+    const emailLang = draft.lang === "en" ? "en" : "he";
+    const customerServiceTitle = service.translations?.[emailLang]?.title || service.title;
+    const adminServiceTitle = service.translations?.he?.title || service.title;
     // fire-and-forget to keep response fast
-    sendBookingConfirmation(booking, serviceTitle, "he").catch(console.error);
-    sendAdminNotification(booking, serviceTitle).catch(console.error);
+    sendBookingConfirmation(booking, customerServiceTitle, emailLang).catch(console.error);
+    sendAdminNotification(booking, adminServiceTitle).catch(console.error);
 
-    res.status(201).json({ status: "confirmed", booking: bookingSummary(booking, service) });
+    res.status(201).json({ status: "confirmed", booking: bookingSummary(booking, service, payment) });
   } catch (err) {
     console.error("Hyp confirm failed:", err);
     if (payment && payment.status === "processing" && !payment.hypTransId) {

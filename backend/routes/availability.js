@@ -4,6 +4,7 @@ const Booking = require("../models/Booking");
 const Service = require("../models/Service");
 const Settings = require("../models/Settings");
 const { generateSlotsForDate } = require("../utils/availability");
+const { conflictServiceFilter } = require("../utils/bookingConflicts");
 const { DEFAULT_OPENING_HOURS, normalizeOpeningHours } = require("../utils/openingHours");
 const router = express.Router();
 
@@ -32,7 +33,8 @@ router.get("/", async (req, res) => {
     const dayEndUtc = dayStartUtc.plus({ days: 1 });
 
     const existing = await Booking.find({
-      serviceId,
+      ...(await conflictServiceFilter(serviceId)),
+      status: { $ne: "canceled" },
       startUtc: { $lt: dayEndUtc.toJSDate() },
       endUtc: { $gt: dayStartUtc.toJSDate() },
     }).lean();

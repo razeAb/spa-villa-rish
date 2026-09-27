@@ -4,16 +4,18 @@ import { api, getAuthToken, setAuthToken } from "../api/client";
 import AdminNav from "../components/AdminNav.jsx";
 import "./AdminCalendar.css";
 
-const toDateIso = (date) => date.toISOString().slice(0, 10);
-// Local (not UTC) calendar date — pairs correctly with toTimeString()'s local time
-// when prefilling the reschedule inputs, since combineDateTime() interprets date+time
-// as local. Using the UTC-based toDateIso here would show the wrong day whenever the
-// local offset crosses a UTC day boundary (e.g. a late-evening booking in Israel).
+// Local (not UTC) calendar date. toISOString() would give the UTC date, which in Israel is the
+// previous day for anything before 02:00/03:00 local — so every calendar cell and booking landed a day early.
 const toLocalDateIso = (date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+};
+const toDateIso = toLocalDateIso;
+const parseDateIso = (iso) => {
+  const [year, month, day] = iso.split("-").map(Number);
+  return new Date(year, month - 1, day);
 };
 const formatTime = (iso) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 const getServiceTitle = (svc, lang) => {
@@ -602,7 +604,7 @@ export default function AdminCalendar() {
                     <div>
                       <p className="text-sm text-white/60">{T[lang].selectedDay}</p>
                       <h3 className="text-xl font-semibold">
-                        {new Date(selectedDateIso).toLocaleDateString(lang === "he" ? "he" : "en", {
+                        {parseDateIso(selectedDateIso).toLocaleDateString(lang === "he" ? "he" : "en", {
                           weekday: "long",
                           month: "long",
                           day: "numeric",

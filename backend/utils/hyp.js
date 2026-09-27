@@ -28,6 +28,20 @@ const getConfig = () => {
 
 const isConfigured = () => Boolean(getConfig());
 
+// Hyp Invoice (EZcount) emails the customer a legal receipt/tax invoice for each payment.
+// Off until the document type is configured in the Hyp portal; turn on with HYP_SEND_INVOICE=true.
+const invoicesEnabled = () => String(process.env.HYP_SEND_INVOICE).toLowerCase() === "true";
+
+// Receipt line items: [code~description~quantity~unit price incl. VAT]. Hyp rejects the payment (400)
+// unless they add up exactly to Amount, and the description may not contain ~ [ ].
+const formatInvoiceItems = (items) =>
+  items
+    .map((item) => {
+      const description = String(item.description || "").replace(/[~[\]]/g, " ").trim() || "-";
+      return `[0~${description}~${item.quantity || 1}~${Number(item.unitPrice).toFixed(2)}]`;
+    })
+    .join("");
+
 const requireConfig = () => {
   const config = getConfig();
   if (!config) throw new HypError("Hyp is not configured (set HYP_MASOF, HYP_KEY, HYP_PASSP)");
@@ -74,6 +88,7 @@ const createPaymentPageUrl = async ({
   email,
   cell,
   lang = "he",
+  items = [],
 }) => {
   const { masof, key, passP } = requireConfig();
   const query = toQuery({
@@ -92,8 +107,17 @@ const createPaymentPageUrl = async ({
     email,
     cell,
     PageLang: lang === "en" ? "ENG" : "HEB",
+    // Template 4 asks only for card details (+ Israeli ID); customer details come from the fields above.
+    tmp: 4,
     MoreData: "True",
     Tash: 1,
+    ...(invoicesEnabled() && email
+      ? {
+          SendHesh: "True",
+          "EZ.lang": lang === "en" ? "en" : "he",
+          ...(items.length ? { Pritim: "True", heshDesc: formatInvoiceItems(items) } : { heshDesc: info }),
+        }
+      : {}),
   });
   const text = await callHyp(query);
   const parsed = parseResponse(text);

@@ -27,6 +27,7 @@ npm run dev        # starts nodemon on http://localhost:4000
 | `HYP_KEY` | Hyp API key (Hyp portal → הגדרות → API-דף תשלום ו → אימות). |
 | `HYP_PASSP` | Hyp API password "PassP" — not the portal login password. |
 | `HYP_BASE_URL` | Optional override of `https://pay.hyp.co.il/p/`. |
+| `HYP_SEND_INVOICE` | `true` to have Hyp Invoice email the customer a legal receipt/tax invoice per payment (set the document type in the Hyp portal first). |
 
 > Keep `.env` files out of version control (see `backend/.gitignore`).
 

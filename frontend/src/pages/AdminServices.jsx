@@ -23,6 +23,10 @@ const T = {
     duration: "משך (דק׳)",
     priceAmount: "מחיר",
     priceDisplayHe: "תצוגת מחיר בעברית",
+    category: "מדור באתר",
+    categoryMassage: "טיפולים אישיים",
+    categoryGroup: "חבילות זוגיות / קבוצתיות",
+    categoryOther: "אחר – לא תופס את הספא (למשל לינה בוילה)",
     priceDisplayEn: "תצוגת מחיר באנגלית",
     save: "שמור",
     saving: "שומר…",
@@ -68,6 +72,10 @@ const T = {
     duration: "Duration (min)",
     priceAmount: "Price amount",
     priceDisplayHe: "Hebrew price display",
+    category: "Site section",
+    categoryMassage: "Personal treatments",
+    categoryGroup: "Couple / group packages",
+    categoryOther: "Other – doesn't block the spa (e.g. villa stay)",
     priceDisplayEn: "English price display",
     save: "Save",
     saving: "Saving…",
@@ -114,6 +122,7 @@ export default function AdminServices() {
     titleHe: "",
     titleEn: "",
     priceAmount: "",
+    category: "massage",
     priceDisplayHe: "",
     priceDisplayEn: "",
     durationMin: "",
@@ -148,6 +157,7 @@ export default function AdminServices() {
           titleHe: svc?.translations?.he?.title || "",
           titleEn: svc?.translations?.en?.title || svc.title || "",
           priceAmount: svc.priceAmount || "",
+          category: svc.category || "massage",
           priceDisplayHe: svc?.translations?.he?.priceDisplay || "",
           priceDisplayEn: svc?.translations?.en?.priceDisplay || svc.priceDisplay || "",
           durationMin: svc.durationMin || "",
@@ -262,6 +272,7 @@ export default function AdminServices() {
         durationMin: Number(draft.durationMin),
         priceAmount: Number(draft.priceAmount),
         priceDisplay: draft.priceDisplayEn || draft.priceDisplayHe,
+        category: draft.category,
         isActive: Boolean(draft.isActive),
         featured: Boolean(draft.featured),
         sortOrder: Number(draft.sortOrder) || 0,
@@ -340,6 +351,7 @@ export default function AdminServices() {
         durationMin: Number(createForm.durationMin),
         priceAmount: Number(createForm.priceAmount),
         priceDisplay: createForm.priceDisplayEn || createForm.priceDisplayHe || "",
+        category: createForm.category,
         featured: Boolean(createForm.featured),
         sortOrder: Number(createForm.sortOrder) || 0,
         heroImage: createForm.heroImage || "",
@@ -360,6 +372,7 @@ export default function AdminServices() {
         titleHe: "",
         titleEn: "",
         priceAmount: "",
+        category: "massage",
         priceDisplayHe: "",
         priceDisplayEn: "",
         durationMin: "",
@@ -461,6 +474,18 @@ export default function AdminServices() {
                               onChange={(e) => handleDraftChange(svc._id, "priceAmount", e.target.value)}
                               className="mt-1 w-24 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
                             />
+                          </label>
+                          <label className="text-xs text-white/70">
+                            {T[lang].category}
+                            <select
+                              value={drafts[svc._id]?.category || "massage"}
+                              onChange={(e) => handleDraftChange(svc._id, "category", e.target.value)}
+                              className="mt-1 block w-44 rounded-lg border border-white/10 bg-black/60 px-2 py-1 text-white"
+                            >
+                              <option value="massage">{T[lang].categoryMassage}</option>
+                              <option value="group">{T[lang].categoryGroup}</option>
+                              <option value="other">{T[lang].categoryOther}</option>
+                            </select>
                           </label>
                           <label className="text-xs text-white/70">
                             {T[lang].priceDisplayHe}
@@ -706,6 +731,18 @@ export default function AdminServices() {
                     className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-white"
                     required
                   />
+                </label>
+                <label className="text-sm text-white/80">
+                  {T[lang].category}
+                  <select
+                    value={createForm.category}
+                    onChange={(e) => setCreateForm((p) => ({ ...p, category: e.target.value }))}
+                    className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-white"
+                  >
+                    <option value="massage">{T[lang].categoryMassage}</option>
+                    <option value="group">{T[lang].categoryGroup}</option>
+                    <option value="other">{T[lang].categoryOther}</option>
+                  </select>
                 </label>
                 <label className="text-sm text-white/80">
                   {T[lang].priceDisplayHe}

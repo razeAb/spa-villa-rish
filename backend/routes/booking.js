@@ -6,6 +6,7 @@ const Payment = require('../models/Payment');
 const auth = require('../utils/authMiddleware'); // מאמת JWT לממשקים של מנהל
 const { sendBookingConfirmation, sendAdminNotification } = require('../utils/mailer');
 const hyp = require('../utils/hyp');
+const { conflictServiceFilter } = require('../utils/bookingConflicts');
 const router = express.Router();
 
 const buildSlotWindow = async (serviceId, startIso) => {
@@ -21,9 +22,10 @@ const buildSlotWindow = async (serviceId, startIso) => {
   };
 };
 
-const hasClash = (serviceId, startUtc, endUtc, excludeId = null) => {
+const hasClash = async (serviceId, startUtc, endUtc, excludeId = null) => {
   const filter = {
-    serviceId,
+    ...(await conflictServiceFilter(serviceId)),
+    status: { $ne: 'canceled' },
     startUtc: { $lt: endUtc },
     endUtc: { $gt: startUtc },
   };
@@ -156,6 +158,12 @@ router.put('/:id', auth, async (req,res) => {
       }
     }
     if (typeof note === 'string') update.note = note;
+
+    // Canceled bookings free their slot, so bringing one back must not overlap a newer booking.
+    if (booking.status === 'canceled' && update.status && update.status !== 'canceled' && !startUtc) {
+      const clash = await hasClash(booking.serviceId, booking.startUtc, booking.endUtc, id);
+      if (clash) return res.status(409).json({ error: 'This time slot has since been booked by someone else' });
+    }
 
     if (startUtc) {
       const slotWindow = await buildSlotWindow(booking.serviceId, startUtc);

@@ -67,7 +67,7 @@ router.post("/", auth, async (req, res) => {
       title,
       description = "",
       typeLabel = "",
-      category = "massage",
+      category,
       durationMin,
       priceAmount,
       priceCurrency = "ILS",
@@ -89,7 +89,6 @@ router.post("/", auth, async (req, res) => {
       description,
       typeLabel,
       durationMin: parsedDuration,
-      category: ALLOWED_CATEGORIES.includes(category) ? category : "other",
       priceAmount: parsedPrice,
       priceCurrency,
       priceDisplay: priceDisplay || `${priceCurrency} ${priceAmount}`,
@@ -102,6 +101,12 @@ router.post("/", auth, async (req, res) => {
       featured: Boolean(featured),
       sortOrder: Number(sortOrder) || 0,
     };
+    // Only touch the category when the admin sent one, so older clients can't reset it.
+    if (ALLOWED_CATEGORIES.includes(category)) {
+      payload.category = category;
+    } else if (!id) {
+      payload.category = "massage";
+    }
     if (Object.prototype.hasOwnProperty.call(req.body, "addOns")) {
       payload.addOns = normalizeAddOns(req.body.addOns);
     }

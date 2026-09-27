@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import FloatingActions from "./FloatingActions";
 import SectionProgress from "./SectionProgress.jsx";
+import SiteFooter from "./SiteFooter.jsx";
 
 export default function AppLayout() {
   return (
@@ -12,6 +13,7 @@ export default function AppLayout() {
       <main>
         <Outlet />
       </main>
+      <SiteFooter />
     </div>
   );
 }
