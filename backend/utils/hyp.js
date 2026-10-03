@@ -107,6 +107,8 @@ const createPaymentPageUrl = async ({
     email,
     cell,
     PageLang: lang === "en" ? "ENG" : "HEB",
+    // Our params are UTF-8; without this Hyp reads them as windows-1255 and Hebrew shows as gibberish.
+    UTF8: "True",
     // Template 4 asks only for card details (+ Israeli ID); customer details come from the fields above.
     tmp: 4,
     MoreData: "True",
